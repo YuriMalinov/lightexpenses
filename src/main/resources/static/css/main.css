@@ -1,0 +1,40 @@
+.category-select {
+    height: 34px;
+}
+
+
+.expense-description {
+    color: #777;
+    font-size: 75%;
+}
+
+body, table {
+    font-family: 'Roboto', sans-serif;
+}
+
+.saved {
+    color: #3e8f3e;
+}
+
+.offline {
+    color: #777;
+}
+
+.table td.expense-amount {
+    text-align: right;
+    white-space: nowrap;
+    vertical-align: middle;
+}
+
+.table td.expense-time {
+    font-size: 75%;
+    white-space: nowrap;
+    color: #777;
+    vertical-align: middle;
+}
+
+@media (min-width: 600px) {
+    .container {
+        width: 600px;
+    }
+}

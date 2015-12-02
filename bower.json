@@ -1,0 +1,24 @@
+{
+  "name": "lightexpenses",
+  "version": "0.0.0",
+  "authors": [
+    "Yuri Malinov <yura@lightsoft.ru>"
+  ],
+  "license": "MIT",
+  "ignore": [
+    "**/.*",
+    "node_modules",
+    "bower_components",
+    "src/main/resources/static/bower-libs",
+    "test",
+    "tests"
+  ],
+  "dependencies": {
+    "angularjs": "~1.4.8",
+    "jquery": "~2.1.4",
+    "bootstrap": "twbs/bootstrap#~3.3.5",
+    "font-awesome": "fontawesome#~4.4.0",
+    "requirejs": "~2.1.22",
+    "moment": "~2.10.6"
+  }
+}
