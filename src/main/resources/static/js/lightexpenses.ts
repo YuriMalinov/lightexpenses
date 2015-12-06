@@ -76,6 +76,10 @@ class StatisticsItem {
 
 enum PeriodType {CurrentWeek, CurrentMonth, CurrentYear, Specific}
 
+class LightExpensesControllerDisplay {
+    public whyLogin = false;
+}
+
 export class LightExpensesController {
     public expenses: Array<Expense>;
     public categories: Array<ExpenseCategory>;
@@ -97,6 +101,8 @@ export class LightExpensesController {
 
     public statistics: Array<StatisticsItem>;
     public totalAmount: number;
+
+    public display: LightExpensesControllerDisplay;
 
     constructor(private $scope: any, private $timeout: angular.ITimeoutService, private expensesStorage: ExpensesStorage) {
         $scope.c = this;

@@ -5,6 +5,10 @@ spring:
     password: lightexpenses
     driver-class-name: org.postgresql.Driver
 
+  jpa:
+    hibernate:
+      ddl-auto: update
+      naming-strategy: org.springframework.boot.orm.jpa.hibernate.SpringNamingStrategy
 
   freemarker:
     cache: false

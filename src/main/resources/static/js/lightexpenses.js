@@ -85,6 +85,12 @@ define(["require", "exports", 'bower-libs/moment/moment'], function (require, ex
         PeriodType[PeriodType["CurrentYear"] = 2] = "CurrentYear";
         PeriodType[PeriodType["Specific"] = 3] = "Specific";
     })(PeriodType || (PeriodType = {}));
+    var LightExpensesControllerDisplay = (function () {
+        function LightExpensesControllerDisplay() {
+            this.whyLogin = false;
+        }
+        return LightExpensesControllerDisplay;
+    })();
     var LightExpensesController = (function () {
         function LightExpensesController($scope, $timeout, expensesStorage) {
             var _this = this;

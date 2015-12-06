@@ -1,17 +1,19 @@
 package ru.smarty.lightexpenses.controller
 
-import org.springframework.social.facebook.api.Facebook
+import org.springframework.beans.factory.annotation.Autowired
 import org.springframework.stereotype.Controller
+import org.springframework.ui.Model
 import org.springframework.web.bind.annotation.RequestMapping
-import javax.inject.Inject
+import ru.smarty.lightexpenses.auth.SecurityUtils
 
 @Controller
-open class IndexController @Inject constructor(
-        private val facebook: Facebook
+open class IndexController @Autowired constructor(
+        private val securityUtils: SecurityUtils
 ) {
     @RequestMapping("/")
-    fun index(): String {
-//        println(facebook.isAuthorized)
+    fun index(model: Model): String {
+        model.addAttribute("authorized", securityUtils.isAuthorized())
+        model.addAttribute("userName", securityUtils.getUserName())
         return "index"
     }
 }

@@ -16,11 +16,35 @@
 </head>
 <body>
 <div class="container" ng-controller="LightExpensesController">
-    <h2 class="page-header">Мои расходы</h2>
+    <h2 class="page-header">Мои расходы
+        <span class="pull-right small">
+        <#if authorized>${userName}
+        <#else>
+            <form action="/connect/facebook" id="facebookConnect" method="POST">
+                <a href="#" onclick="$('#facebookConnect').submit(); return false"><i class="fa fa-facebook-official"></i> Войти</a>
+                <a href="#" ng-click="c.display.whyShow = !c.display.whyShow"><i class="fa fa-question-circle"></i> Зачем</a>
+            </form>
+        </#if>
+        </span>
+    </h2>
 
-    <form action="/connect/facebook" id="facebookConnect" method="POST">
-        <a onclick="$('#facebookConnect').submit()"><i class="fa fa-facebook"/> Facebook</a>
-    </form>
+    <div ng-cloak="" ng-show="c.display.whyShow">
+        <div class="panel panel-info">
+            <div class="panel-heading">Зачем входить?</div>
+            <div class="panel-body">
+                После того, как вы войдёте в систему:
+                <ul>
+                    <li>Вы сможете использовать приложение на разных устройствах.</li>
+                    <li>Данные будут автоматически синхронизироваться на сервер.</li>
+                </ul>
+            </div>
+            <div class="panel-footer">
+                <a href="#" onclick="$('#facebookConnect').submit(); return false" class="btn btn-primary"><i class="fa fa-facebook-official"></i> Всё понятно, войти</a>
+                <a href="#" ng-click="c.display.whyShow = !c.display.whyShow" class="btn btn-sm btn-default"><i class="fa fa-close"></i> Пока что нет, попозже</a>
+            </div>
+        </div>
+
+    </div>
 
 
     <form>
