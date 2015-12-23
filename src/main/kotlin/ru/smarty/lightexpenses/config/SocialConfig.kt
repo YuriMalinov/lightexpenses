@@ -1,24 +1,19 @@
 package ru.smarty.lightexpenses.config
 
 import org.springframework.beans.factory.annotation.Autowired
+import org.springframework.context.annotation.Bean
 import org.springframework.context.annotation.Configuration
-import org.springframework.core.env.Environment
-import org.springframework.security.core.context.SecurityContextHolder
 import org.springframework.security.crypto.encrypt.TextEncryptor
 import org.springframework.social.UserIdSource
-import org.springframework.social.config.annotation.ConnectionFactoryConfigurer
 import org.springframework.social.config.annotation.SocialConfigurerAdapter
 import org.springframework.social.connect.Connection
 import org.springframework.social.connect.ConnectionFactoryLocator
 import org.springframework.social.connect.ConnectionSignUp
 import org.springframework.social.connect.UsersConnectionRepository
 import org.springframework.social.connect.jdbc.JdbcUsersConnectionRepository
-import org.springframework.social.facebook.connect.FacebookConnectionFactory
-import org.springframework.social.security.SocialAuthenticationToken
-import org.springframework.social.security.SocialUser
-import org.springframework.social.security.SocialUserDetails
 import org.springframework.stereotype.Service
-import ru.smarty.lightexpenses.auth.AppUserDetails
+import ru.smarty.lightexpenses.auth.AuthInterceptor
+import ru.smarty.lightexpenses.auth.SecurityUtils
 import ru.smarty.lightexpenses.model.UserRepository
 import javax.sql.DataSource
 
@@ -30,6 +25,9 @@ open class SocialConfig : SocialConfigurerAdapter() {
     @Autowired
     lateinit var signUp: AccountConnectionSignUp
 
+    @Autowired
+    lateinit var securityUtils: SecurityUtils
+
     override fun getUsersConnectionRepository(connectionFactoryLocator: ConnectionFactoryLocator): UsersConnectionRepository {
         val repository = JdbcUsersConnectionRepository(dataSource, connectionFactoryLocator, NoOpEncryptor())
         repository.setTablePrefix("lightexpenses.")
@@ -39,7 +37,7 @@ open class SocialConfig : SocialConfigurerAdapter() {
 
     override fun getUserIdSource(): UserIdSource? {
         return UserIdSource {
-            (SecurityContextHolder.getContext().authentication.principal as? AppUserDetails)?.userId ?: "anonymous"
+            securityUtils.userId()
         }
     }
 

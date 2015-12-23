@@ -1,6 +1,7 @@
 package ru.smarty.lightexpenses.auth
 
 import org.springframework.beans.factory.annotation.Autowired
+import org.springframework.security.authentication.AuthenticationManager
 import org.springframework.security.core.context.SecurityContextHolder
 import org.springframework.social.connect.Connection
 import org.springframework.social.connect.ConnectionFactory
@@ -22,7 +23,8 @@ class AuthInterceptor @Autowired constructor(
         private val userRepository: UserRepository,
         private val userDetailsService: AppUserDetailsService,
         private val entityManager: EntityManager, // Потому что репозиторий не умеет делать persist. А разворачивать кутерьму с катомной базой - довольно хлопотно.
-        private val transactionTemplate: TransactionTemplate // Если использовать @Transactional получим прокси, который потряет тип Generic-а, и наш интерсептор сядет не туда.
+        private val transactionTemplate: TransactionTemplate, // Если использовать @Transactional получим прокси, который потряет тип Generic-а, и наш интерсептор сядет не туда.
+        private val authenticationManager: AuthenticationManager
 ) : ConnectInterceptor<Facebook> {
 
     override fun postConnect(connection: Connection<Facebook>, request: WebRequest?) {
@@ -39,8 +41,9 @@ class AuthInterceptor @Autowired constructor(
                 appUser
             }
 
-            SecurityContextHolder.getContext().authentication =
-                    SocialAuthenticationToken(connection, userDetailsService.makeUserDetails(user), emptyMap(), emptyList())
+            val token = SocialAuthenticationToken(connection, userDetailsService.makeUserDetails(user), emptyMap(), emptyList())
+//            val authenticatedToken = authenticationManager.authenticate(token)
+            SecurityContextHolder.getContext().authentication = token
         }
     }
 
