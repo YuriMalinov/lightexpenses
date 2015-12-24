@@ -1,27 +1,18 @@
 package ru.smarty.lightexpenses.auth
 
+import org.springframework.security.core.Authentication
 import org.springframework.security.core.context.SecurityContextHolder
 import org.springframework.stereotype.Service
 
 @Service
 class SecurityUtils {
-    fun userId(): String {
-        return user()?.userId ?: "anonymous"
-    }
+    fun userId(): String = user()?.userId ?: "anonymous"
 
-    fun user(): AppUserDetails? {
-        return SecurityContextHolder.getContext().authentication.principal as? AppUserDetails
-    }
+    fun user(): AppUserDetails? = authentication().principal as? AppUserDetails
 
-    fun isAuthorized(): Boolean {
-        return user() != null
-    }
+    fun authentication(): Authentication = SecurityContextHolder.getContext().authentication
 
-    fun getUserName(): String? {
-        if (isAuthorized()) {
-            return "${user()!!.username}"
-        } else {
-            return null
-        }
-    }
+    fun isAuthorized(): Boolean = user() != null
+
+    fun getUserName(): String? = user()?.realName
 }

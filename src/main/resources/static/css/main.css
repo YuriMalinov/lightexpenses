@@ -38,3 +38,7 @@ body, table {
         width: 600px;
     }
 }
+
+#logout-form {
+    display: inline-block;
+}

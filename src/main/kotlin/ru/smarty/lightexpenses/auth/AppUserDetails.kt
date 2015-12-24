@@ -6,7 +6,7 @@ import org.springframework.social.security.SocialUser
 /**
  * Штука для получения полных данных в авторизации...
  */
-class AppUserDetails(val appUserId: String, username: String?, password: String?, enabled: Boolean, accountNonExpired: Boolean, credentialsNonExpired: Boolean, accountNonLocked: Boolean, authorities: MutableCollection<out GrantedAuthority>?) :
-        SocialUser(username, password, enabled, accountNonExpired, credentialsNonExpired, accountNonLocked, authorities) {
-    override fun getUserId(): String = appUserId
+class AppUserDetails(val userName: String, val realName: String, password: String?, enabled: Boolean, accountNonExpired: Boolean, credentialsNonExpired: Boolean, accountNonLocked: Boolean, authorities: MutableCollection<out GrantedAuthority>?) :
+        SocialUser(userName, password, enabled, accountNonExpired, credentialsNonExpired, accountNonLocked, authorities) {
+    override fun getUserId(): String = userName
 }

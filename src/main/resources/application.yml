@@ -25,6 +25,8 @@ server:
     store-dir: ./sessions
     tracking-modes: COOKIE
 
+
+
 #security:
 #  oauth2:
 #    client:
@@ -36,3 +38,7 @@ endpoints:
   shutdown:
     enabled: true
     sensitive: true
+
+logging:
+  level:
+    org.springframework.security: debug

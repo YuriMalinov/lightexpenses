@@ -1,5 +1,8 @@
 package ru.smarty.lightexpenses.model
 
+import org.springframework.data.domain.Persistable
+import java.math.BigInteger
+import java.security.SecureRandom
 import java.util.*
 import javax.persistence.*
 
@@ -23,6 +26,9 @@ open class AppUser constructor() {
     @get:Column(columnDefinition = "text", nullable = true)
     open var email: String? = null
 
+    @get:Column(columnDefinition = "text", nullable = false)
+    open var password: String = BigInteger(128, random).toString(32)
+
     @get:OneToMany(targetEntity = ExpenseCategory::class, cascade = arrayOf(CascadeType.ALL), orphanRemoval = true, mappedBy = "owner")
     open var categories: List<ExpenseCategory> = emptyList()
 
@@ -30,6 +36,10 @@ open class AppUser constructor() {
         this.id = id
         this.name = name
         this.email = email
+    }
+
+    companion object {
+        val random = SecureRandom()
     }
 }
 

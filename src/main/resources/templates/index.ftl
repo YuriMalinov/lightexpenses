@@ -19,9 +19,13 @@
     <h2 class="page-header">Мои расходы
         <span class="pull-right small">
         <#if authorized>${userName}
+            <form action="/logout" id="logout-form">
+                <a href="#" onclick="$('#logout-form').submit()"><i class="fa fa-sign-out"></i></a>
+            </form>
         <#else>
             <form action="/connect/facebook" id="facebookConnect" method="POST">
-                <a href="#" onclick="$('#facebookConnect').submit(); return false"><i class="fa fa-facebook-official"></i> Войти</a>
+                <#--<a href="#" onclick="$('#facebookConnect').submit(); return false"><i class="fa fa-facebook-official"></i> Войти</a>-->
+                <a href="/auth/facebook"><i class="fa fa-facebook-official"></i> Войти</a>
                 <a href="#" ng-click="c.display.whyShow = !c.display.whyShow"><i class="fa fa-question-circle"></i> Зачем</a>
             </form>
         </#if>
