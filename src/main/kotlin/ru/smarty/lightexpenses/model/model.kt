@@ -1,6 +1,5 @@
 package ru.smarty.lightexpenses.model
 
-import org.springframework.data.domain.Persistable
 import java.math.BigInteger
 import java.security.SecureRandom
 import java.util.*

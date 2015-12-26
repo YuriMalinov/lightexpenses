@@ -1,6 +1,7 @@
 package ru.smarty.lightexpenses.auth
 
 import org.springframework.beans.factory.annotation.Autowired
+import org.springframework.security.core.authority.SimpleGrantedAuthority
 import org.springframework.security.core.userdetails.UserDetails
 import org.springframework.security.core.userdetails.UserDetailsService
 import org.springframework.social.security.SocialUserDetails
@@ -25,5 +26,5 @@ class AppUserDetailsService @Autowired constructor(
         return makeUserDetails(user)
     }
 
-    fun makeUserDetails(user: AppUser) = AppUserDetails(user.id.replace(':', '!'), user.name, user.password, true, true, true, true, arrayListOf())
+    fun makeUserDetails(user: AppUser) = AppUserDetails(user.id.replace(':', '!'), user.name, user.password, true, true, true, true, arrayListOf(SimpleGrantedAuthority("USER")))
 }
