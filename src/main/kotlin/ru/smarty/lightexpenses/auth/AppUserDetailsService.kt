@@ -26,5 +26,5 @@ class AppUserDetailsService @Autowired constructor(
         return makeUserDetails(user)
     }
 
-    fun makeUserDetails(user: AppUser) = AppUserDetails(user.id.replace(':', '!'), user.name, user.password, true, true, true, true, arrayListOf(SimpleGrantedAuthority("USER")))
+    fun makeUserDetails(user: AppUser) = AppUserDetails(user, user.id.replace(':', '!'), user.name, user.password, true, true, true, true, arrayListOf(SimpleGrantedAuthority("USER")))
 }

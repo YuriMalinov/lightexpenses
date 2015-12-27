@@ -16,12 +16,94 @@ class Expense {
 }
 
 class ExpenseCategory {
-    constructor(public name: string, public saved: Boolean = false, public id: string = generateUUID()) {
+    constructor(public name: string, public parentCategoryId: number = null, public saved: Boolean = false, public id: string = generateUUID()) {
     }
 }
 
-class ExpensesStorage {
-    constructor(private $window: angular.IWindowService) {
+/**
+ * Main role is to maintain current expense data & manage change events.
+ *
+ * There is no strict mutability handling. So if one changes Expense he has to call updateExpense() which effectively triggers update.
+ */
+class ExpenseDataService {
+    private _expenses: Array<Expense>;
+    private _categories: Array<ExpenseCategory>;
+
+    private updateExpensesListeners: Array<() => void> = [];
+    private updateCategoriesListeners: Array<() => void> = [];
+
+    constructor(private expensesStorage: ExpensesStorageService, private $timeout: angular.ITimeoutService) {
+        this._categories = expensesStorage.loadCategories();
+        if (!this._categories) {
+            this._categories = [
+                new ExpenseCategory("Еда"),
+                new ExpenseCategory("Одежда"),
+                new ExpenseCategory("Транспорт"),
+                new ExpenseCategory("Машина"),
+                new ExpenseCategory("Спорт"),
+                new ExpenseCategory("Лечение")
+            ];
+
+            expensesStorage.saveCategories(this._categories);
+        }
+
+        this._categories.sort((a, b) => a.name.localeCompare(b.name));
+
+        this._expenses = expensesStorage.loadExpenses();
+        if (!this._expenses) {
+            this._expenses = [];
+        }
+
+        this.notifyExpenseChanged();
+        this.notifyCategoryChanged();
+    }
+
+    get expenses(): Array<Expense> {
+        return this._expenses;
+    }
+
+    get categories(): Array<ExpenseCategory> {
+        return this._categories;
+    }
+
+    onUpdateExpenses(fun: () => void, notify: boolean = true) {
+        this.updateExpensesListeners.push(fun);
+        if (notify) fun();
+    }
+
+    onUpdateCategories(fun: () => void, notify: boolean = true) {
+        this.updateCategoriesListeners.push(fun);
+        if (notify) fun();
+    }
+
+    notifyExpenseChanged() {
+        this.updateExpensesListeners.forEach(it => it());
+        // Looks like we have to call it ourselves to break cycle dependency
+        this.expensesStorage.saveExpenses(this.expenses);
+    }
+
+    notifyCategoryChanged() {
+        this.updateCategoriesListeners.forEach(it => it());
+        // Looks like we have to call it ourselves to break cycle dependency
+        this.expensesStorage.saveCategories(this.categories);
+    }
+
+    addExpense(expense: Expense) {
+        this.expenses.push(expense);
+        this.notifyExpenseChanged();
+    }
+
+    addCategory(category: ExpenseCategory) {
+        this.categories.push(category);
+        this.notifyCategoryChanged();
+    }
+}
+
+/**
+ * Main role is to save/restore LocalStorage copy
+ */
+class ExpensesStorageService {
+    constructor(private $window: angular.IWindowService, private $log: angular.ILogService) {
     }
 
     public saveExpenses(expenses: Array<Expense>) {
@@ -39,10 +121,15 @@ class ExpensesStorage {
         if (item === null) {
             return null;
         } else {
-            var data = angular.fromJson(item);
-            return data.map((e: Expense & {date: number}) =>
-                new Expense(e.categoryId, e.amount, e.description, new Date(e.date), e.saved, e.id)
-            )
+            try {
+                var data = angular.fromJson(item);
+                return data.map((e: Expense & {date: number}) =>
+                    new Expense(e.categoryId, e.amount, e.description, new Date(e.date), e.saved, e.id)
+                );
+            } catch (e) {
+                this.$log.error("Error while loading expenses", e);
+                return null;
+            }
         }
     }
 
@@ -55,8 +142,13 @@ class ExpensesStorage {
         if (item === null) {
             return null;
         } else {
-            var data: Array<ExpenseCategory> = angular.fromJson(item);
-            return data.map(c => new ExpenseCategory(c.name, c.saved, c.id))
+            try {
+                var data: Array<ExpenseCategory> = angular.fromJson(item);
+                return data.map(c => new ExpenseCategory(c.name, c.parentCategoryId, c.saved, c.id))
+            } catch (e) {
+                this.$log.error("Error while loading categories", e);
+                return null;
+            }
         }
     }
 
@@ -66,6 +158,11 @@ class ExpensesStorage {
 
     public loadLastSelectedCategory(): string {
         return this.$window.localStorage.getItem("lastCategoryId");
+    }
+}
+
+class ExpensesSynchronizer {
+    constructor(private $http: angular.IHttpService) {
     }
 }
 
@@ -80,10 +177,13 @@ class LightExpensesControllerDisplay {
     public whyLogin = false;
 }
 
+interface AngularData {
+    authorized: boolean
+}
+
 export class LightExpensesController {
-    public expenses: Array<Expense>;
-    public categories: Array<ExpenseCategory>;
     public categoriesById: { [categoryId: string]: ExpenseCategory; };
+    public displayCategories: Array<ExpenseCategory>;
 
     public selectedCategoryId: string;
     public currentAmount: number;
@@ -104,40 +204,23 @@ export class LightExpensesController {
 
     public display: LightExpensesControllerDisplay;
 
-    constructor(private $scope: any, private $timeout: angular.ITimeoutService, private expensesStorage: ExpensesStorage) {
+    constructor(private $scope: any,
+                private $timeout: angular.ITimeoutService,
+                private expensesStorage: ExpensesStorageService,
+                private expensesData: ExpenseDataService,
+                private angularData: AngularData) {
         $scope.c = this;
 
-        console.log(expensesStorage);
+        this.updatePeriod();
 
-        this.categories = expensesStorage.loadCategories();
-        if (!this.categories) {
-            this.categories = [
-                new ExpenseCategory("Еда"),
-                new ExpenseCategory("Одежда"),
-                new ExpenseCategory("Транспорт"),
-                new ExpenseCategory("Машина"),
-                new ExpenseCategory("Спорт"),
-                new ExpenseCategory("Лечение")
-            ];
-
-            expensesStorage.saveCategories(this.categories);
-        }
-
-        this.categories.sort((a, b) => a.name.localeCompare(b.name));
-        this.updateCategoriesById();
+        expensesData.onUpdateCategories(() => this.updateCategoriesById());
+        expensesData.onUpdateExpenses(() => this.updateDisplayExpenses());
 
         this.selectedCategoryId = expensesStorage.loadLastSelectedCategory();
+        // NOTE: Expects listener to be called
         if (!this.selectedCategoryId || this.categoriesById[this.selectedCategoryId] === undefined) {
-            this.selectedCategoryId = this.categories[0].id;
+            this.selectedCategoryId = this.expensesData.categories[0].id;
         }
-
-        this.expenses = expensesStorage.loadExpenses();
-        if (!this.expenses) {
-            this.expenses = [];
-        }
-
-        this.updatePeriod();
-        this.updateDisplayExpenses();
 
         $scope.$watch(() => this.selectedCategoryId, () => {
             expensesStorage.saveLastSelectedCategory(this.selectedCategoryId);
@@ -150,15 +233,13 @@ export class LightExpensesController {
             return;
         }
 
-        this.expenses.push(new Expense(this.selectedCategoryId, this.currentAmount, this.currentDescription));
+        this.expensesData.addExpense(new Expense(this.selectedCategoryId, this.currentAmount, this.currentDescription));
+
         this.$timeout(() => {
             this.currentAmount = null;
             this.currentDescription = null;
             this.focusAmount = true;
         }, 50);
-
-        this.updateDisplayExpenses();
-        this.expensesStorage.saveExpenses(this.expenses);
     }
 
     public updatePeriod() {
@@ -182,7 +263,7 @@ export class LightExpensesController {
     }
 
     public updateDisplayExpenses() {
-        var displayExpenses = this.expenses.filter(expense => moment(expense.date).isBetween(this.periodFrom, this.periodTo));
+        var displayExpenses = this.expensesData.expenses.filter(expense => moment(expense.date).isBetween(this.periodFrom, this.periodTo));
         displayExpenses.sort((a, b) => b.date.getTime() - a.date.getTime());
 
         this.possibleExpensesCount = displayExpenses.length;
@@ -230,7 +311,8 @@ export class LightExpensesController {
 
     private updateCategoriesById() {
         this.categoriesById = {};
-        this.categories.forEach(c => this.categoriesById[c.id] = c)
+        this.expensesData.categories.forEach(c => this.categoriesById[c.id] = c);
+        this.displayCategories = this.expensesData.categories;
     }
 
 }
@@ -251,7 +333,10 @@ function generateUUID() {
 
 export var LightExpenses = angular.module("LightExpenses", []);
 LightExpenses.controller("LightExpensesController", LightExpensesController);
-LightExpenses.service("expensesStorage", ExpensesStorage);
+LightExpenses.service("expensesStorage", ExpensesStorageService);
+LightExpenses.service("expensesData", ExpenseDataService);
+LightExpenses.value("angularData", {});
+
 
 LightExpenses.directive('focusMe', function ($timeout) {
     return {

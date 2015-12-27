@@ -1,5 +1,6 @@
 package ru.smarty.lightexpenses.model
 
+import com.fasterxml.jackson.annotation.JsonIgnore
 import java.math.BigInteger
 import java.security.SecureRandom
 import java.util.*
@@ -52,8 +53,12 @@ open class ExpenseCategory : UuidEntity() {
     @get:Column(columnDefinition = "text not null")
     open lateinit var name: String
 
+    @get:JsonIgnore
     @get:ManyToOne(optional = true)
     open var parentCategory: ExpenseCategory? = null
+
+    open val parentCatgoryId: UUID?
+        @Transient get() = parentCategory?.id
 }
 
 

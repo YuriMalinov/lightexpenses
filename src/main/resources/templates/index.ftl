@@ -58,7 +58,7 @@
 
                 <span class="input-group-btn">
                     <select class="btn btn-info category-select"
-                            ng-options="category.id as category.name for category in c.categories"
+                            ng-options="category.id as category.name for category in c.displayCategories"
                             ng-model="c.selectedCategoryId">
                     </select>
                 </span>
@@ -109,6 +109,7 @@
 <script type="text/javascript">
     require(['js/lightexpenses'], function (lightexpenses) {
         window.LightExpenses = lightexpenses.LightExpenses;
+        window.LightExpenses.value("angularData", ${json.writeValueAsString(angularData)});
         angular.bootstrap(document, ['LightExpenses']);
     })
 </script>
