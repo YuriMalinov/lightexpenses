@@ -1,6 +1,8 @@
 package ru.smarty.lightexpenses.model
 
 import com.fasterxml.jackson.annotation.JsonIgnore
+import org.hibernate.annotations.Type
+import org.springframework.data.domain.Persistable
 import java.math.BigInteger
 import java.security.SecureRandom
 import java.util.*
@@ -8,9 +10,23 @@ import javax.persistence.*
 
 
 @MappedSuperclass
-open class UuidEntity {
-    @get:Id
-    open var id: UUID = UUID.randomUUID()
+open class CommonEntity : Persistable<Int> {
+    private var _id: Int = 0
+
+    @get:Type(type = "pg-uuid")
+    var uuid: UUID? = null
+
+    fun setId(id: Int) {
+        _id = id
+    }
+
+    @Id
+    @GeneratedValue(strategy = GenerationType.IDENTITY)
+    @JsonIgnore
+    override fun getId(): Int = _id
+
+    @Transient
+    override fun isNew(): Boolean = _id == 0
 }
 
 
@@ -41,12 +57,30 @@ open class AppUser constructor() {
     companion object {
         val random = SecureRandom()
     }
+
+    override fun equals(other: Any?): Boolean {
+        if (this === other) return true
+        if (other?.javaClass != javaClass) return false
+
+        other as AppUser
+
+        if (id != other.id) return false
+
+        return true
+    }
+
+    override fun hashCode(): Int {
+        return id.hashCode()
+    }
+
+
 }
 
 
 @Entity
 @Table(name = "expense_category", schema = "lightexpenses")
-open class ExpenseCategory : UuidEntity() {
+open class ExpenseCategory : CommonEntity() {
+    @get:JsonIgnore
     @get:ManyToOne(fetch = FetchType.LAZY, optional = false)
     open lateinit var owner: AppUser
 
@@ -58,13 +92,13 @@ open class ExpenseCategory : UuidEntity() {
     open var parentCategory: ExpenseCategory? = null
 
     open val parentCatgoryId: UUID?
-        @Transient get() = parentCategory?.id
+        @Transient get() = parentCategory?.uuid
 }
 
 
 @Entity
-@Table(name = "expense_category", schema = "lightexpenses")
-open class Expense : UuidEntity() {
+@Table(name = "expense", schema = "lightexpenses")
+open class Expense : CommonEntity() {
     @get:ManyToOne
     open lateinit var expenseCategory: ExpenseCategory
 

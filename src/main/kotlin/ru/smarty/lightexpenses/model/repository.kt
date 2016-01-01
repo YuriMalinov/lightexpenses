@@ -6,11 +6,11 @@ import java.util.*
 
 interface UserRepository : JpaRepository<AppUser, String>
 
-interface ExpenseCategoryRepository : JpaRepository<ExpenseCategory, UUID> {
+interface ExpenseCategoryRepository : JpaRepository<ExpenseCategory, Int> {
     fun findByOwner(owner: AppUser): List<ExpenseCategory>
 }
 
-interface ExpenseRepository : JpaRepository<Expense, UUID> {
+interface ExpenseRepository : JpaRepository<Expense, Int> {
     @Query("select e from Expense e where e.expenseCategory.owner = ?1")
     fun findByOwner(owner: AppUser): List<Expense>
 }

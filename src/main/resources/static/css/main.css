@@ -42,3 +42,7 @@ body, table {
 #logout-form {
     display: inline-block;
 }
+
+span[ng-click] {
+    cursor: pointer;
+}

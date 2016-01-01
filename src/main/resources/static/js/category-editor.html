@@ -1,0 +1,12 @@
+<form class="form">
+    <div class="form-group">
+        <label>Название категории:</label>
+        <input class="form-control" type="text" ng-model="c.edit.name">
+    </div>
+    <div class="form-group">
+        <label>Группа</label>
+        <select class="form-control" ng-model="c.edit.parentCategoryId" ng-options="cat.uuid as cat.name for cat in c.categories"></select>
+    </div>
+    <button type="submit" class="btn btn-primary" ng-click="c.save()">Сохранить</button>
+    <button type="submit" class="btn btn-default" ng-click="c.cancel()">Отменить</button>
+</form>

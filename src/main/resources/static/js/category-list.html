@@ -1,0 +1,22 @@
+<div class="category-editor panel panel-success">
+    <div class="panel-heading">
+        Категории
+        <a class="btn btn-primary btn-sm" ng-click="c.addCategory()"><i class="fa fa-plus-circle"></i> Добавить</a>
+    </div>
+    <div class="panel-body" ng-if="c.newItem">
+        <category-editor category="c.newItem" on-save="c.saveCategory" on-cancel="c.cancelEdit"></category-editor>
+    </div>
+    <ul class="list-group">
+        <li class="list-group-item" ng-repeat="cat in c.categories">
+            <span ng-click="c.editCategory(cat)"><span ng-show="cat.parentCategoryId">• </span>{{ cat.name }}</span>
+            <div class="pull-right">
+                <a href="javascript:void(0)" ng-click="c.editCategory(cat)"><i class="fa fa-edit"></i></a>
+                <a href="javascript:void(0)" ng-click="c.deleteCategory(cat)"><i class="fa fa-trash"></i></a>
+            </div>
+            <category-editor ng-if="c.editItem == cat" category="c.editItem" on-save="c.saveCategory" on-cancel="c.cancelEdit"></category-editor>
+        </li>
+    </ul>
+    <div class="panel-footer">
+        <a class="btn btn-primary" ng-click="c.close()">Закрыть</a>
+    </div>
+</div>

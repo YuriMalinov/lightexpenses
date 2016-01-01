@@ -16,7 +16,7 @@
 </head>
 <body>
 <div class="container" ng-controller="LightExpensesController">
-    <h2 class="page-header">Мои расходы
+    <h2 class="page-header clearfix">Мои расходы
         <span class="pull-right small">
         <#if authorized>${userName}
             <form action="/logout" id="logout-form">
@@ -50,6 +50,7 @@
 
     </div>
 
+    <category-list ng-if="c.selectedCategoryId == 'setup'" on-close="c.finishSetup"></category-list>
 
     <form>
         <div class="form-group">
@@ -58,7 +59,7 @@
 
                 <span class="input-group-btn">
                     <select class="btn btn-info category-select"
-                            ng-options="category.id as category.name for category in c.displayCategories"
+                            ng-options="category.uuid as category.displayName() for category in c.displayCategories"
                             ng-model="c.selectedCategoryId">
                     </select>
                 </span>
@@ -68,7 +69,7 @@
             <input type="text" placeholder="Описание, если нужно" class="form-control" ng-model="c.currentDescription">
         </div>
         <div class="form-group">
-            <input type="submit" class="btn btn-primary" value="Добавить" ng-click="c.addExpense()">
+            <input type="submit" class="btn btn-primary" value="Добавить" ng-click="c.addExpense()" ng-class="{disabled: c.selectedCategoryId == 'setup'}">
         </div>
     </form>
 
