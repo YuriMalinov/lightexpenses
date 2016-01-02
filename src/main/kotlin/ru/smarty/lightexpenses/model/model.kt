@@ -1,6 +1,7 @@
 package ru.smarty.lightexpenses.model
 
 import com.fasterxml.jackson.annotation.JsonIgnore
+import org.hibernate.annotations.BatchSize
 import org.hibernate.annotations.Type
 import org.springframework.data.domain.Persistable
 import java.math.BigInteger
@@ -72,8 +73,6 @@ open class AppUser constructor() {
     override fun hashCode(): Int {
         return id.hashCode()
     }
-
-
 }
 
 
@@ -100,12 +99,17 @@ open class ExpenseCategory : CommonEntity() {
 @Table(name = "expense", schema = "lightexpenses")
 open class Expense : CommonEntity() {
     @get:ManyToOne
+    @get:BatchSize(size = 100)
     open lateinit var expenseCategory: ExpenseCategory
 
     open var amount: Double = 0.0
 
     open var date: Date = Date()
 
-    @get:Column(columnDefinition = "text not null")
-    open var description: String = ""
+    @get:Column(columnDefinition = "text")
+    open var description: String? = null
+
+    override fun toString(): String {
+        return "Expense(${expenseCategory.name}, $amount, $date, $description)"
+    }
 }

@@ -1,5 +1,7 @@
 /// <reference path="../typings/angularjs/angular.d.ts" />
 
+// amd-dependency path="/bower-libs/moment/moment.js" />
+import moment = require('bower-libs/moment/moment');
 import model = require('js/model');
 import {Expense, ExpenseCategory} from "./model";
 
@@ -42,6 +44,10 @@ export class ExpenseDataService {
     }
 
     getExpenses(): Array<Expense> {
+        return this._expenses.filter(e => !e.trash);
+    }
+
+    getAllExpenses(): Array<Expense> {
         return this._expenses;
     }
 
@@ -154,7 +160,7 @@ export class ExpensesStorageService {
             try {
                 var data = angular.fromJson(item);
                 return data.map((e: Expense & {date: number}) =>
-                    new model.Expense(e.categoryId, e.amount, e.description, new Date(e.date), e.changed, e.uuid)
+                    new model.Expense(e.categoryId, e.amount, e.description, new Date(e.date), e.changed, e.uuid, e.trash)
                 );
             } catch (e) {
                 this.$log.error("Error while loading expenses", e);
@@ -174,7 +180,7 @@ export class ExpensesStorageService {
         } else {
             try {
                 var data: Array<ExpenseCategory> = angular.fromJson(item);
-                return data.map(c => new model.ExpenseCategory(c.name, c.parentCategoryId, c.changed, c.uuid))
+                return data.map(c => new model.ExpenseCategory(c.name, c.parentCategoryId, c.changed, c.uuid, c.trash))
             } catch (e) {
                 this.$log.error("Error while loading categories", e);
                 return null;
@@ -193,13 +199,16 @@ export class ExpensesStorageService {
 
 export class ExpensesSynchronizer {
     private inUpdate: boolean = false;
+    public lastProblems: {(uuid: string): boolean} = <any>{};
 
     constructor(private $http: angular.IHttpService,
                 private $timeout: angular.ITimeoutService,
+                private $log: angular.ILogService,
                 private expensesData: ExpenseDataService,
                 private angularData: model.AngularData) {
         if (angularData.authorized) {
             expensesData.onUpdateCategories(() => this.updateCategories());
+            expensesData.onUpdateExpenses(() => this.updateExpenses());
         }
     }
 
@@ -214,6 +223,35 @@ export class ExpensesSynchronizer {
         }).finally(() => {
             this.$timeout(() => this.updateCategories(), 15000);
         });
+    }
+
+    updateExpenses() {
+        if (this.inUpdate) return;
+
+        var changed = this.expensesData.getExpenses().filter(e => e.changed).map(e => {
+            var send = <Expense & {date: string}> angular.copy(e);
+            send.date = moment(e.date).format();
+            return send;
+        });
+        if (changed.length == 0) return;
+
+        this.$http.post("/data/update-expenses", {expenses: changed}).then((result) => {
+            var data = <{problems: {expense: Expense, problem: string}[]}> result.data;
+            if (data.problems) {
+                this.$log.error("There were problems while saving expenses:", data.problems);
+            }
+
+            this.lastProblems = <any>{};
+            data.problems.forEach(p => this.lastProblems[p.expense.uuid] = p.problem);
+
+            changed.forEach(e => {
+                if (!this.lastProblems[e.uuid]) {
+                    e.changed = false;
+                }
+            });
+
+            this.skipUpdate(() => this.expensesData.notifyExpenseChanged());
+        })
     }
 
     private skipUpdate(fn: () => any) {

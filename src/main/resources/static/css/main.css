@@ -46,3 +46,7 @@ body, table {
 span[ng-click] {
     cursor: pointer;
 }
+
+.red {
+    color: red;
+}

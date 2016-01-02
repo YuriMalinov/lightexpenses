@@ -8,11 +8,17 @@ interface UserRepository : JpaRepository<AppUser, String>
 
 interface ExpenseCategoryRepository : JpaRepository<ExpenseCategory, Int> {
     fun findByOwner(owner: AppUser): List<ExpenseCategory>
+
+    fun findByUuidIn(uuids: Collection<UUID>): List<ExpenseCategory>
 }
 
 interface ExpenseRepository : JpaRepository<Expense, Int> {
     @Query("select e from Expense e where e.expenseCategory.owner = ?1")
     fun findByOwner(owner: AppUser): List<Expense>
+
+    fun findByUuidIn(uuids: List<UUID>): List<Expense>
+
+    fun findByExpenseCategoryOwnerAndDateBetween(owner: AppUser, from: Date, to: Date): List<Expense>
 }
 
 //@NoRepositoryBean

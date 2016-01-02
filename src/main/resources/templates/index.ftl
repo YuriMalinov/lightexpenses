@@ -47,31 +47,11 @@
                 <a href="#" ng-click="c.display.whyShow = !c.display.whyShow" class="btn btn-sm btn-default"><i class="fa fa-close"></i> Пока что нет, попозже</a>
             </div>
         </div>
-
     </div>
 
     <category-list ng-if="c.selectedCategoryId == 'setup'" on-close="c.finishSetup"></category-list>
 
-    <form>
-        <div class="form-group">
-            <div class="input-group">
-                <input type="number" class="form-control col-md-4" placeholder="Сумма" required ng-model="c.currentAmount" focus-me="c.focusAmount">
-
-                <span class="input-group-btn">
-                    <select class="btn btn-info category-select"
-                            ng-options="category.uuid as category.displayName() for category in c.displayCategories"
-                            ng-model="c.selectedCategoryId">
-                    </select>
-                </span>
-            </div>
-        </div>
-        <div class="form-group">
-            <input type="text" placeholder="Описание, если нужно" class="form-control" ng-model="c.currentDescription">
-        </div>
-        <div class="form-group">
-            <input type="submit" class="btn btn-primary" value="Добавить" ng-click="c.addExpense()" ng-class="{disabled: c.selectedCategoryId == 'setup'}">
-        </div>
-    </form>
+    <expense-editor></expense-editor>
 
     <h3>История расходов</h3>
     <table class="table">
@@ -85,9 +65,12 @@
                 {{ expense.amount|number }}
                 <i class="fa fa-check" ng-class="{saved: category.saved, offline: !category.saved}"></i>
             </td>
+            <td ng-show="c.errorFor(expense)">
+                <i class="fa fa-exclamation-circle red" title="Ошибка при сохранении данных: {{ c.errorFor(expense) }}"></i>
+            </td>
         </tr>
         <tr>
-            <td colspan="3">
+            <td colspan="4">
                 <a href="#" class="btn btn-xs btn-info" ng-show="c.displayExpensesNumber < c.possibleExpensesCount" ng-click="c.increaseDisplayExpenses()">Показать ещё</a>
                 <a href="#" class="btn btn-xs btn-info" ng-show="c.displayExpensesNumber > 3" ng-click="c.resetDisplayExpenses()">Свернуть</a>
             </td>

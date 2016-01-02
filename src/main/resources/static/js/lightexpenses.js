@@ -1,6 +1,6 @@
 /// <reference path="../typings/angularjs/angular.d.ts" />
 /// <reference path="../typings/moment/moment.d.ts" />
-define(["require", "exports", 'bower-libs/moment/moment', 'js/category-list', 'js/services', 'js/model', "./model"], function (require, exports, moment, categoryList, services, model, model_1) {
+define(["require", "exports", 'bower-libs/moment/moment', 'js/category-list', 'js/services', 'js/model', 'js/expense-editor', "./model"], function (require, exports, moment, categoryList, services, model, expenseEditor, model_1) {
     var StatisticsItem = (function () {
         function StatisticsItem(categoryId, amount, percent) {
             this.categoryId = categoryId;
@@ -30,6 +30,7 @@ define(["require", "exports", 'bower-libs/moment/moment', 'js/category-list', 'j
             this.expensesStorage = expensesStorage;
             this.expensesData = expensesData;
             this.angularData = angularData;
+            this.expensesSynchronizer = expensesSynchronizer;
             this.focusAmount = true;
             this.displayExpensesNumber = 3;
             this.periodType = PeriodType.CurrentMonth;
@@ -116,6 +117,9 @@ define(["require", "exports", 'bower-libs/moment/moment', 'js/category-list', 'j
             this.statistics = final;
             this.totalAmount = totalAmount;
         };
+        LightExpensesController.prototype.errorFor = function (expense) {
+            return this.expensesSynchronizer.lastProblems[expense.uuid];
+        };
         LightExpensesController.prototype.increaseDisplayExpenses = function () {
             this.displayExpensesNumber += 20;
             this.updateDisplayExpenses();
@@ -140,6 +144,7 @@ define(["require", "exports", 'bower-libs/moment/moment', 'js/category-list', 'j
     exports.LightExpenses.service("expensesSynchronizer", services.ExpensesSynchronizer);
     exports.LightExpenses.value("angularData", {});
     categoryList.register(exports.LightExpenses);
+    expenseEditor.register(exports.LightExpenses);
     exports.LightExpenses.directive('focusMe', function ($timeout) {
         return {
             scope: { trigger: '=focusMe' },

@@ -1,1 +1,3 @@
 - add lastUpdated + trigger mechanism to skip returning categories that hasn't been updated, same thing for expenses
+- remove category with replace
+- split ExpensesStorageService into Saver & Loader and subscribe Saver to events directly.

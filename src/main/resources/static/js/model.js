@@ -1,15 +1,17 @@
 define(["require", "exports", 'js/helpers'], function (require, exports, helpers) {
     var Expense = (function () {
-        function Expense(categoryId, amount, description, date, changed, uuid) {
+        function Expense(categoryId, amount, description, date, changed, uuid, trash) {
             if (date === void 0) { date = new Date(); }
             if (changed === void 0) { changed = true; }
             if (uuid === void 0) { uuid = helpers.generateUUID(); }
+            if (trash === void 0) { trash = false; }
             this.categoryId = categoryId;
             this.amount = amount;
             this.description = description;
             this.date = date;
             this.changed = changed;
             this.uuid = uuid;
+            this.trash = trash;
         }
         return Expense;
     })();

@@ -1,0 +1,21 @@
+<form>
+    <div class="form-group">
+        <div class="input-group">
+            <input type="number" class="form-control col-md-4" placeholder="Сумма" required ng-model="c.currentAmount" focus-me="c.focusAmount">
+
+            <span class="input-group-btn">
+                <select class="btn btn-info category-select"
+                        ng-options="category.uuid as category.displayName() for category in c.displayCategories"
+                        ng-model="c.selectedCategoryId">
+                </select>
+            </span>
+        </div>
+    </div>
+    <div class="form-group">
+        <input type="text" placeholder="Описание, если нужно" class="form-control" ng-model="c.currentDescription">
+    </div>
+    <div class="form-group">
+        <input type="submit" class="btn btn-primary" value="Добавить" ng-click="c.addExpense()" ng-class="{disabled: c.selectedCategoryId == 'setup'}">
+        <a href="javascript:void(0)">Указать дату</a>
+    </div>
+</form>

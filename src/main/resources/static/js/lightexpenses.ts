@@ -7,6 +7,7 @@ import IWindowService = angular.IWindowService;
 import categoryList = require('js/category-list');
 import services = require('js/services');
 import model = require('js/model');
+import expenseEditor = require('js/expense-editor');
 import {ExpenseCategory, Expense} from "./model";
 
 class StatisticsItem {
@@ -49,7 +50,7 @@ class LightExpensesController {
                 private expensesStorage: services.ExpensesStorageService,
                 private expensesData: services.ExpenseDataService,
                 private angularData: model.AngularData,
-                expensesSynchronizer: services.ExpensesSynchronizer) {
+                private expensesSynchronizer: services.ExpensesSynchronizer) {
         $scope.c = this;
 
         this.updatePeriod();
@@ -146,6 +147,10 @@ class LightExpensesController {
         this.totalAmount = totalAmount;
     }
 
+    public errorFor(expense: Expense): string {
+        return this.expensesSynchronizer.lastProblems[expense.uuid];
+    }
+
     finishSetup = (lastCategory: ExpenseCategory) => {
         this.selectedCategoryId = lastCategory ? lastCategory.uuid : this.previousCategoryId;
     };
@@ -179,6 +184,7 @@ LightExpenses.service("expensesSynchronizer", services.ExpensesSynchronizer);
 LightExpenses.value("angularData", {});
 
 categoryList.register(LightExpenses);
+expenseEditor.register(LightExpenses);
 
 
 LightExpenses.directive('focusMe', function ($timeout) {

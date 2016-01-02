@@ -15,17 +15,10 @@ import java.util.*
 import javax.transaction.Transactional
 
 @Controller
-open class DataController @Autowired constructor(
+open class CategoriesController @Autowired constructor(
         private val categoryRepository: ExpenseCategoryRepository,
-        private val expenseRepository: ExpenseRepository,
         private val security: SecurityUtils
 ) {
-    @RequestMapping("/data/categories")
-    @Secured("USER")
-    open fun categories(): List<ExpenseCategory> {
-        return categoryRepository.findByOwner(security.appUser() ?: return listOf())
-    }
-
     @RequestMapping("/data/sync-categories", method = arrayOf(POST))
     @ResponseBody
     @Secured("USER")

@@ -1,5 +1,5 @@
 /// <reference path="../typings/angularjs/angular.d.ts" />
-define(["require", "exports", 'js/model'], function (require, exports, model) {
+define(["require", "exports", 'bower-libs/moment/moment', 'js/model'], function (require, exports, moment, model) {
     /**
      * Main role is to maintain current expense data & manage change events.
      *
@@ -32,6 +32,9 @@ define(["require", "exports", 'js/model'], function (require, exports, model) {
             this.notifyCategoryChanged();
         }
         ExpenseDataService.prototype.getExpenses = function () {
+            return this._expenses.filter(function (e) { return !e.trash; });
+        };
+        ExpenseDataService.prototype.getAllExpenses = function () {
             return this._expenses;
         };
         ExpenseDataService.prototype.getCategories = function () {
@@ -138,7 +141,7 @@ define(["require", "exports", 'js/model'], function (require, exports, model) {
                 try {
                     var data = angular.fromJson(item);
                     return data.map(function (e) {
-                        return new model.Expense(e.categoryId, e.amount, e.description, new Date(e.date), e.changed, e.uuid);
+                        return new model.Expense(e.categoryId, e.amount, e.description, new Date(e.date), e.changed, e.uuid, e.trash);
                     });
                 }
                 catch (e) {
@@ -158,7 +161,7 @@ define(["require", "exports", 'js/model'], function (require, exports, model) {
             else {
                 try {
                     var data = angular.fromJson(item);
-                    return data.map(function (c) { return new model.ExpenseCategory(c.name, c.parentCategoryId, c.changed, c.uuid); });
+                    return data.map(function (c) { return new model.ExpenseCategory(c.name, c.parentCategoryId, c.changed, c.uuid, c.trash); });
                 }
                 catch (e) {
                     this.$log.error("Error while loading categories", e);
@@ -176,15 +179,18 @@ define(["require", "exports", 'js/model'], function (require, exports, model) {
     })();
     exports.ExpensesStorageService = ExpensesStorageService;
     var ExpensesSynchronizer = (function () {
-        function ExpensesSynchronizer($http, $timeout, expensesData, angularData) {
+        function ExpensesSynchronizer($http, $timeout, $log, expensesData, angularData) {
             var _this = this;
             this.$http = $http;
             this.$timeout = $timeout;
+            this.$log = $log;
             this.expensesData = expensesData;
             this.angularData = angularData;
             this.inUpdate = false;
+            this.lastProblems = {};
             if (angularData.authorized) {
                 expensesData.onUpdateCategories(function () { return _this.updateCategories(); });
+                expensesData.onUpdateExpenses(function () { return _this.updateExpenses(); });
             }
         }
         ExpensesSynchronizer.prototype.updateCategories = function () {
@@ -198,6 +204,32 @@ define(["require", "exports", 'js/model'], function (require, exports, model) {
                 _this.skipUpdate(function () { return _this.expensesData.updateCategories(mapped); });
             }).finally(function () {
                 _this.$timeout(function () { return _this.updateCategories(); }, 15000);
+            });
+        };
+        ExpensesSynchronizer.prototype.updateExpenses = function () {
+            var _this = this;
+            if (this.inUpdate)
+                return;
+            var changed = this.expensesData.getExpenses().filter(function (e) { return e.changed; }).map(function (e) {
+                var send = angular.copy(e);
+                send.date = moment(e.date).format();
+                return send;
+            });
+            if (changed.length == 0)
+                return;
+            this.$http.post("/data/update-expenses", { expenses: changed }).then(function (result) {
+                var data = result.data;
+                if (data.problems) {
+                    _this.$log.error("There were problems while saving expenses:", data.problems);
+                }
+                _this.lastProblems = {};
+                data.problems.forEach(function (p) { return _this.lastProblems[p.expense.uuid] = p.problem; });
+                changed.forEach(function (e) {
+                    if (!_this.lastProblems[e.uuid]) {
+                        e.changed = false;
+                    }
+                });
+                _this.skipUpdate(function () { return _this.expensesData.notifyExpenseChanged(); });
             });
         };
         ExpensesSynchronizer.prototype.skipUpdate = function (fn) {
