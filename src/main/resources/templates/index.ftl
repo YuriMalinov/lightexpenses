@@ -15,24 +15,30 @@
     <title>Мои расходы</title>
 </head>
 <body>
-<div class="container" ng-controller="LightExpensesController">
-    <h2 class="page-header clearfix">Мои расходы
-        <span class="pull-right small">
+<nav class="navbar navbar-default">
+    <div class="container">
+        <span class="pull-right login-label">
         <#if authorized>${userName}
             <form action="/logout" id="logout-form">
                 <a href="#" onclick="$('#logout-form').submit()"><i class="fa fa-sign-out"></i></a>
             </form>
         <#else>
             <form action="/connect/facebook" id="facebookConnect" method="POST">
-                <#--<a href="#" onclick="$('#facebookConnect').submit(); return false"><i class="fa fa-facebook-official"></i> Войти</a>-->
+            <#--<a href="#" onclick="$('#facebookConnect').submit(); return false"><i class="fa fa-facebook-official"></i> Войти</a>-->
                 <a href="/auth/facebook"><i class="fa fa-facebook-official"></i> Войти</a>
                 <a href="#" ng-click="c.display.whyShow = !c.display.whyShow"><i class="fa fa-question-circle"></i> Зачем</a>
             </form>
         </#if>
         </span>
-    </h2>
 
-    <div ng-cloak="" ng-show="c.display.whyShow">
+        <div class="navbar-header">
+            <a class="navbar-brand" href="/">Мои расходы</a>
+        </div>
+    </div>
+</nav>
+<div class="container" ng-controller="LightExpensesController" ng-cloak="">
+
+    <div ng-show="c.display.whyShow">
         <div class="panel panel-info">
             <div class="panel-heading">Зачем входить?</div>
             <div class="panel-body">
@@ -51,26 +57,23 @@
 
     <category-list ng-if="c.selectedCategoryId == 'setup'" on-close="c.finishSetup"></category-list>
 
-    <expense-editor></expense-editor>
+    <expense-editor is-addition="true" parent="c"></expense-editor>
 
     <h3>История расходов</h3>
     <table class="table">
         <tr ng-repeat="expense in c.displayExpenses">
             <td class="expense-time">{{ expense.date | date:'dd.MM HH:mm' }}</td>
             <td>
-                {{ c.categoriesById[expense.categoryId].name }}
+                {{ c.getCategory(expense.categoryId).name }}
                 <div class="expense-description" ng-if="expense.description" ng-bind="expense.description"></div>
             </td>
             <td class="expense-amount">
                 {{ expense.amount|number }}
-                <i class="fa fa-check" ng-class="{saved: category.saved, offline: !category.saved}"></i>
-            </td>
-            <td ng-show="c.errorFor(expense)">
-                <i class="fa fa-exclamation-circle red" title="Ошибка при сохранении данных: {{ c.errorFor(expense) }}"></i>
+                <i class="fa fa-check" ng-class="{saved: !category.changed, offline: category.changed, red: c.errorFor(expense)}" title="{{ c.errorFor(expense) }}"></i>
             </td>
         </tr>
         <tr>
-            <td colspan="4">
+            <td colspan="3">
                 <a href="#" class="btn btn-xs btn-info" ng-show="c.displayExpensesNumber < c.possibleExpensesCount" ng-click="c.increaseDisplayExpenses()">Показать ещё</a>
                 <a href="#" class="btn btn-xs btn-info" ng-show="c.displayExpensesNumber > 3" ng-click="c.resetDisplayExpenses()">Свернуть</a>
             </td>
@@ -80,7 +83,7 @@
     <h3>Статистика</h3>
     <table class="table">
         <tr ng-repeat="stat in c.statistics">
-            <td>{{ c.categoriesById[stat.categoryId].name }}</td>
+            <td>{{ c.getCategory(stat.categoryId).name }}</td>
             <td>{{ stat.amount | number }}</td>
             <td>{{ stat.percent | number:0 }}%</td>
         </tr>

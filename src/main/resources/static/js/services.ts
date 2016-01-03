@@ -17,6 +17,9 @@ export class ExpenseDataService {
     private updateExpensesListeners: Array<() => void> = [];
     private updateCategoriesListeners: Array<() => void> = [];
 
+    private sortedCategories: ExpenseCategory[];
+    private categoryById: {[categoryUuid: string]: ExpenseCategory} = <any>{};
+
     constructor(private expensesStorage: ExpensesStorageService, private $timeout: angular.ITimeoutService) {
         this._categories = expensesStorage.loadCategories();
         if (!this._categories || this._categories.length == 0) {
@@ -41,6 +44,8 @@ export class ExpenseDataService {
 
         this.notifyExpenseChanged();
         this.notifyCategoryChanged();
+
+        this.onUpdateCategories(() => this.updateSortedCategories());
     }
 
     getExpenses(): Array<Expense> {
@@ -67,6 +72,16 @@ export class ExpenseDataService {
     onUpdateCategories(fun: () => void, notify: boolean = true) {
         this.updateCategoriesListeners.push(fun);
         if (notify) fun();
+    }
+
+    removeOnUpdateCategories(fun: () => void) {
+        this.updateCategoriesListeners.every((f, i) => {
+            if (f === fun) {
+                this.updateCategoriesListeners.splice(i, 1);
+                return false;
+            }
+            return true;
+        })
     }
 
     notifyExpenseChanged() {
@@ -132,6 +147,20 @@ export class ExpenseDataService {
     updateCategories(categories: Array<ExpenseCategory>) {
         this._categories = categories;
         this.notifyCategoryChanged();
+    }
+
+    private updateSortedCategories() {
+        this.sortedCategories = model.sortCategoriesByParent(this.getCategories());
+        this.categoryById = <any>{};
+        this.getCategories().forEach(cat => this.categoryById[cat.uuid] = cat);
+    }
+
+    getSortedCategories(): ExpenseCategory[] {
+        return this.sortedCategories;
+    }
+
+    getCategory(uuid: string): ExpenseCategory {
+        return this.categoryById[uuid];
     }
 }
 
@@ -237,7 +266,7 @@ export class ExpensesSynchronizer {
 
         this.$http.post("/data/update-expenses", {expenses: changed}).then((result) => {
             var data = <{problems: {expense: Expense, problem: string}[]}> result.data;
-            if (data.problems) {
+            if (data.problems.length) {
                 this.$log.error("There were problems while saving expenses:", data.problems);
             }
 

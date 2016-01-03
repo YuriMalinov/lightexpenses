@@ -13,11 +13,15 @@ body, table {
 }
 
 .saved {
-    color: #3e8f3e;
+    color: chartreuse;
 }
 
 .offline {
-    color: #777;
+    color: #ccc;
+}
+
+.red {
+    color: crimson;
 }
 
 .table td.expense-amount {
@@ -47,6 +51,12 @@ span[ng-click] {
     cursor: pointer;
 }
 
-.red {
-    color: red;
+
+.ml10 {
+    display: inline-block;
+    margin-left: 10px;
+}
+
+.login-label {
+    margin-top: 17px;
 }

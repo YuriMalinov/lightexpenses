@@ -22,14 +22,7 @@ class LightExpensesControllerDisplay {
 }
 
 class LightExpensesController {
-    public categoriesById: { [categoryId: string]: ExpenseCategory; };
-    public displayCategories: Array<ExpenseCategory>;
-
-    public selectedCategoryId: string;
     public previousCategoryId: string;
-    public currentAmount: number;
-    public currentDescription: string;
-    public focusAmount: boolean = true;
 
     public displayExpenses: Array<Expense>;
     public filteredExpenses: Array<Expense>;
@@ -45,6 +38,8 @@ class LightExpensesController {
 
     public display: LightExpensesControllerDisplay;
 
+    private addExpenseCtrl: expenseEditor.ExpenseEditorCtrl;
+
     constructor(private $scope: any,
                 private $timeout: angular.ITimeoutService,
                 private expensesStorage: services.ExpensesStorageService,
@@ -55,18 +50,12 @@ class LightExpensesController {
 
         this.updatePeriod();
 
-        expensesData.onUpdateCategories(() => this.updateCategoriesById());
         expensesData.onUpdateExpenses(() => this.updateDisplayExpenses());
 
-        this.selectedCategoryId = expensesStorage.loadLastSelectedCategory();
-        // NOTE: Expects listener to be called
-        if (!this.selectedCategoryId || this.categoriesById[this.selectedCategoryId] === undefined) {
-            this.previousCategoryId = this.selectedCategoryId = this.expensesData.getCategories()[0].uuid;
-        }
-
-        $scope.$watch(() => this.selectedCategoryId, (newValue: string, oldValue: string) => {
-            if (this.selectedCategoryId != 'setup') {
-                expensesStorage.saveLastSelectedCategory(this.selectedCategoryId);
+        // manage selected cat and previous is done by main ctrl because we EditorCtlrs are less responsible...
+        $scope.$watch(() => this.addExpenseCtrl ? this.addExpenseCtrl.selectedCategoryId : null, (newValue: string, oldValue: string) => {
+            if (this.addExpenseCtrl && this.addExpenseCtrl.selectedCategoryId != 'setup') {
+                expensesStorage.saveLastSelectedCategory(this.addExpenseCtrl.selectedCategoryId);
             }
 
             if (newValue != oldValue) {
@@ -75,19 +64,12 @@ class LightExpensesController {
         });
     }
 
-    public addExpense() {
-        if (this.currentAmount < 0 || !this.currentAmount) {
-            // Валидации у нас мало, так что можно так
-            return;
+    public setupAddExpense(ctrl: expenseEditor.ExpenseEditorCtrl) {
+        ctrl.selectedCategoryId = this.expensesStorage.loadLastSelectedCategory();
+        // NOTE: Expects listener to be called
+        if (!ctrl.selectedCategoryId || this.expensesData.getCategory(ctrl.selectedCategoryId) === undefined) {
+            this.previousCategoryId = ctrl.selectedCategoryId = this.expensesData.getCategories()[0].uuid;
         }
-
-        this.expensesData.addExpense(new Expense(this.selectedCategoryId, this.currentAmount, this.currentDescription));
-
-        this.$timeout(() => {
-            this.currentAmount = null;
-            this.currentDescription = null;
-            this.focusAmount = true;
-        }, 50);
     }
 
     public updatePeriod() {
@@ -152,8 +134,14 @@ class LightExpensesController {
     }
 
     finishSetup = (lastCategory: ExpenseCategory) => {
-        this.selectedCategoryId = lastCategory ? lastCategory.uuid : this.previousCategoryId;
+        if (this.addExpenseCtrl) {
+            this.addExpenseCtrl.selectedCategoryId = lastCategory ? lastCategory.uuid : this.previousCategoryId;
+        }
     };
+
+    public getCategory(uuid: string): ExpenseCategory {
+        return this.expensesData.getCategory(uuid);
+    }
 
     public increaseDisplayExpenses() {
         this.displayExpensesNumber += 20;
@@ -164,15 +152,6 @@ class LightExpensesController {
         this.displayExpensesNumber = 3;
         this.updateDisplayExpenses();
     }
-
-    private updateCategoriesById() {
-        this.categoriesById = {};
-        this.expensesData.getCategories().forEach(c => this.categoriesById[c.uuid] = c);
-        var display = model.sortCategoriesByParent(this.expensesData.getCategories());
-
-        this.displayCategories = display.concat([new ExpenseCategory('Настроить', null, true, 'setup')]);
-    }
-
 }
 
 

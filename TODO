@@ -1,3 +1,16 @@
+start plan:
+- ability to set date & time for expense
+- period selector
+- ability to load expenses from server
+- edit & trash expenses
+- deploy to server:
+  - choose domain
+  - by domain & delegate
+  - run at server
+  - setup nginx at 8080
+  - switch nginx & apache
+
+Technology:
 - add lastUpdated + trigger mechanism to skip returning categories that hasn't been updated, same thing for expenses
 - remove category with replace
 - split ExpensesStorageService into Saver & Loader and subscribe Saver to events directly.

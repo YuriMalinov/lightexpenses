@@ -1,6 +1,6 @@
 /// <reference path="../typings/angularjs/angular.d.ts" />
 /// <reference path="../typings/moment/moment.d.ts" />
-define(["require", "exports", 'bower-libs/moment/moment', 'js/category-list', 'js/services', 'js/model', 'js/expense-editor', "./model"], function (require, exports, moment, categoryList, services, model, expenseEditor, model_1) {
+define(["require", "exports", 'bower-libs/moment/moment', 'js/category-list', 'js/services', 'js/expense-editor'], function (require, exports, moment, categoryList, services, expenseEditor) {
     var StatisticsItem = (function () {
         function StatisticsItem(categoryId, amount, percent) {
             this.categoryId = categoryId;
@@ -31,42 +31,32 @@ define(["require", "exports", 'bower-libs/moment/moment', 'js/category-list', 'j
             this.expensesData = expensesData;
             this.angularData = angularData;
             this.expensesSynchronizer = expensesSynchronizer;
-            this.focusAmount = true;
             this.displayExpensesNumber = 3;
             this.periodType = PeriodType.CurrentMonth;
             this.finishSetup = function (lastCategory) {
-                _this.selectedCategoryId = lastCategory ? lastCategory.uuid : _this.previousCategoryId;
+                if (_this.addExpenseCtrl) {
+                    _this.addExpenseCtrl.selectedCategoryId = lastCategory ? lastCategory.uuid : _this.previousCategoryId;
+                }
             };
             $scope.c = this;
             this.updatePeriod();
-            expensesData.onUpdateCategories(function () { return _this.updateCategoriesById(); });
             expensesData.onUpdateExpenses(function () { return _this.updateDisplayExpenses(); });
-            this.selectedCategoryId = expensesStorage.loadLastSelectedCategory();
-            // NOTE: Expects listener to be called
-            if (!this.selectedCategoryId || this.categoriesById[this.selectedCategoryId] === undefined) {
-                this.previousCategoryId = this.selectedCategoryId = this.expensesData.getCategories()[0].uuid;
-            }
-            $scope.$watch(function () { return _this.selectedCategoryId; }, function (newValue, oldValue) {
-                if (_this.selectedCategoryId != 'setup') {
-                    expensesStorage.saveLastSelectedCategory(_this.selectedCategoryId);
+            // manage selected cat and previous is done by main ctrl because we EditorCtlrs are less responsible...
+            $scope.$watch(function () { return _this.addExpenseCtrl ? _this.addExpenseCtrl.selectedCategoryId : null; }, function (newValue, oldValue) {
+                if (_this.addExpenseCtrl && _this.addExpenseCtrl.selectedCategoryId != 'setup') {
+                    expensesStorage.saveLastSelectedCategory(_this.addExpenseCtrl.selectedCategoryId);
                 }
                 if (newValue != oldValue) {
                     _this.previousCategoryId = oldValue;
                 }
             });
         }
-        LightExpensesController.prototype.addExpense = function () {
-            var _this = this;
-            if (this.currentAmount < 0 || !this.currentAmount) {
-                // Валидации у нас мало, так что можно так
-                return;
+        LightExpensesController.prototype.setupAddExpense = function (ctrl) {
+            ctrl.selectedCategoryId = this.expensesStorage.loadLastSelectedCategory();
+            // NOTE: Expects listener to be called
+            if (!ctrl.selectedCategoryId || this.expensesData.getCategory(ctrl.selectedCategoryId) === undefined) {
+                this.previousCategoryId = ctrl.selectedCategoryId = this.expensesData.getCategories()[0].uuid;
             }
-            this.expensesData.addExpense(new model_1.Expense(this.selectedCategoryId, this.currentAmount, this.currentDescription));
-            this.$timeout(function () {
-                _this.currentAmount = null;
-                _this.currentDescription = null;
-                _this.focusAmount = true;
-            }, 50);
         };
         LightExpensesController.prototype.updatePeriod = function () {
             var periodName;
@@ -120,6 +110,9 @@ define(["require", "exports", 'bower-libs/moment/moment', 'js/category-list', 'j
         LightExpensesController.prototype.errorFor = function (expense) {
             return this.expensesSynchronizer.lastProblems[expense.uuid];
         };
+        LightExpensesController.prototype.getCategory = function (uuid) {
+            return this.expensesData.getCategory(uuid);
+        };
         LightExpensesController.prototype.increaseDisplayExpenses = function () {
             this.displayExpensesNumber += 20;
             this.updateDisplayExpenses();
@@ -127,13 +120,6 @@ define(["require", "exports", 'bower-libs/moment/moment', 'js/category-list', 'j
         LightExpensesController.prototype.resetDisplayExpenses = function () {
             this.displayExpensesNumber = 3;
             this.updateDisplayExpenses();
-        };
-        LightExpensesController.prototype.updateCategoriesById = function () {
-            var _this = this;
-            this.categoriesById = {};
-            this.expensesData.getCategories().forEach(function (c) { return _this.categoriesById[c.uuid] = c; });
-            var display = model.sortCategoriesByParent(this.expensesData.getCategories());
-            this.displayCategories = display.concat([new model_1.ExpenseCategory('Настроить', null, true, 'setup')]);
         };
         return LightExpensesController;
     })();

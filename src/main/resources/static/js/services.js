@@ -7,10 +7,12 @@ define(["require", "exports", 'bower-libs/moment/moment', 'js/model'], function 
      */
     var ExpenseDataService = (function () {
         function ExpenseDataService(expensesStorage, $timeout) {
+            var _this = this;
             this.expensesStorage = expensesStorage;
             this.$timeout = $timeout;
             this.updateExpensesListeners = [];
             this.updateCategoriesListeners = [];
+            this.categoryById = {};
             this._categories = expensesStorage.loadCategories();
             if (!this._categories || this._categories.length == 0) {
                 this._categories = [
@@ -30,6 +32,7 @@ define(["require", "exports", 'bower-libs/moment/moment', 'js/model'], function 
             }
             this.notifyExpenseChanged();
             this.notifyCategoryChanged();
+            this.onUpdateCategories(function () { return _this.updateSortedCategories(); });
         }
         ExpenseDataService.prototype.getExpenses = function () {
             return this._expenses.filter(function (e) { return !e.trash; });
@@ -54,6 +57,16 @@ define(["require", "exports", 'bower-libs/moment/moment', 'js/model'], function 
             this.updateCategoriesListeners.push(fun);
             if (notify)
                 fun();
+        };
+        ExpenseDataService.prototype.removeOnUpdateCategories = function (fun) {
+            var _this = this;
+            this.updateCategoriesListeners.every(function (f, i) {
+                if (f === fun) {
+                    _this.updateCategoriesListeners.splice(i, 1);
+                    return false;
+                }
+                return true;
+            });
         };
         ExpenseDataService.prototype.notifyExpenseChanged = function () {
             this.updateExpensesListeners.forEach(function (it) { return it(); });
@@ -112,6 +125,18 @@ define(["require", "exports", 'bower-libs/moment/moment', 'js/model'], function 
         ExpenseDataService.prototype.updateCategories = function (categories) {
             this._categories = categories;
             this.notifyCategoryChanged();
+        };
+        ExpenseDataService.prototype.updateSortedCategories = function () {
+            var _this = this;
+            this.sortedCategories = model.sortCategoriesByParent(this.getCategories());
+            this.categoryById = {};
+            this.getCategories().forEach(function (cat) { return _this.categoryById[cat.uuid] = cat; });
+        };
+        ExpenseDataService.prototype.getSortedCategories = function () {
+            return this.sortedCategories;
+        };
+        ExpenseDataService.prototype.getCategory = function (uuid) {
+            return this.categoryById[uuid];
         };
         return ExpenseDataService;
     })();
@@ -219,7 +244,7 @@ define(["require", "exports", 'bower-libs/moment/moment', 'js/model'], function 
                 return;
             this.$http.post("/data/update-expenses", { expenses: changed }).then(function (result) {
                 var data = result.data;
-                if (data.problems) {
+                if (data.problems.length) {
                     _this.$log.error("There were problems while saving expenses:", data.problems);
                 }
                 _this.lastProblems = {};

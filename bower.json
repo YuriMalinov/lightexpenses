@@ -19,6 +19,7 @@
     "bootstrap": "twbs/bootstrap#~3.3.5",
     "font-awesome": "fontawesome#~4.4.0",
     "requirejs": "~2.1.22",
-    "moment": "~2.10.6"
+    "moment": "~2.10.6",
+    "bootstrap-datepicker": "~1.5.1"
   }
 }
