@@ -5,6 +5,7 @@ export class Expense {
                 public amount: number,
                 public description: string,
                 public date: Date = new Date(),
+                public createdDate: Date = new Date(),
                 public changed: boolean = true,
                 public uuid: string = helpers.generateUUID(),
                 public trash: boolean = false) {

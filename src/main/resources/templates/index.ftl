@@ -57,11 +57,11 @@
 
     <category-list ng-if="c.selectedCategoryId == 'setup'" on-close="c.finishSetup"></category-list>
 
-    <expense-editor is-addition="true" parent="c"></expense-editor>
+    <expense-editor parent="c"></expense-editor>
 
     <h3>История расходов</h3>
     <table class="table">
-        <tr ng-repeat="expense in c.displayExpenses">
+        <tr ng-repeat-start="expense in c.displayExpenses" ng-class="{editting: c.editExpense.uuid == expense.uuid}">
             <td class="expense-time">{{ expense.date | date:'dd.MM HH:mm' }}</td>
             <td>
                 {{ c.getCategory(expense.categoryId).name }}
@@ -70,6 +70,12 @@
             <td class="expense-amount">
                 {{ expense.amount|number }}
                 <i class="fa fa-check" ng-class="{saved: !category.changed, offline: category.changed, red: c.errorFor(expense)}" title="{{ c.errorFor(expense) }}"></i>
+                <i class="fa fa-edit" ng-click="c.toggleEditExpense(expense)"></i>
+            </td>
+        </tr>
+        <tr ng-repeat-end="" ng-if="c.editExpense.uuid == expense.uuid" class="editting">
+            <td colspan="3">
+                <expense-editor edit="expense" close="c.toggleEditExpense(expense)"></expense-editor>
             </td>
         </tr>
         <tr>

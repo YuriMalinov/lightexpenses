@@ -40,10 +40,13 @@ create table lightexpenses.expense
   id serial primary key,
   uuid uuid not null,
   amount double precision not null,
-  date timestamp without time zone,
+  date timestamp without time zone not null,
+  created_date timestamp without time zone not null,
   description text,
   expense_category_id integer not null references lightexpenses.expense_category (id)
 );
+
+
 
 create unique index ix_expense_uuid on lightexpenses.expense (uuid);
 

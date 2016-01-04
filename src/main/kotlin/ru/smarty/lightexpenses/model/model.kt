@@ -106,6 +106,8 @@ open class Expense : CommonEntity() {
 
     open var date: Date = Date()
 
+    open var createdDate: Date = Date()
+
     @get:Column(columnDefinition = "text")
     open var description: String? = null
 

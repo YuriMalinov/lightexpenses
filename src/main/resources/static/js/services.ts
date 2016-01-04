@@ -20,7 +20,7 @@ export class ExpenseDataService {
     private sortedCategories: ExpenseCategory[];
     private categoryById: {[categoryUuid: string]: ExpenseCategory} = <any>{};
 
-    constructor(private expensesStorage: ExpensesStorageService, private $timeout: angular.ITimeoutService) {
+    constructor(private expensesStorage: ExpensesStorageService, private $log: angular.ILogService) {
         this._categories = expensesStorage.loadCategories();
         if (!this._categories || this._categories.length == 0) {
             this._categories = [
@@ -101,6 +101,23 @@ export class ExpenseDataService {
         this.notifyExpenseChanged();
     }
 
+    updateExpense(expense: Expense) {
+        var notFound = this._expenses.every(exp => {
+            if (exp.uuid == expense.uuid) {
+                angular.extend(exp, expense);
+                exp.changed = true;
+                return false;
+            }
+            return true;
+        });
+
+        this.notifyExpenseChanged();
+
+        if (!notFound) {
+            this.$log.warn("Nothing found to update for expense", expense);
+        }
+    }
+
     addCategory(category: ExpenseCategory) {
         this._categories.push(category);
         this.notifyCategoryChanged();
@@ -124,6 +141,7 @@ export class ExpenseDataService {
         });
 
         if (!found) {
+            this.$log.warn("Nothing found to update for category", change, "addition is issued");
             this.addCategory(change);
         } else {
             this.notifyCategoryChanged();
@@ -175,6 +193,7 @@ export class ExpensesStorageService {
         var result = expenses.map(expense => {
             var e: any = angular.copy(expense);
             e.date = expense.date.getTime();
+            e.createdDate = expense.createdDate.getTime();
             return e;
         });
 
@@ -188,8 +207,8 @@ export class ExpensesStorageService {
         } else {
             try {
                 var data = angular.fromJson(item);
-                return data.map((e: Expense & {date: number}) =>
-                    new model.Expense(e.categoryId, e.amount, e.description, new Date(e.date), e.changed, e.uuid, e.trash)
+                return data.map((e: Expense & {date: number, createdDate: number}) =>
+                    new model.Expense(e.categoryId, e.amount, e.description, new Date(e.date), new Date(e.createdDate), e.changed, e.uuid, e.trash)
                 );
             } catch (e) {
                 this.$log.error("Error while loading expenses", e);

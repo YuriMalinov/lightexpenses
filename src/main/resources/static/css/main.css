@@ -47,7 +47,7 @@ body, table {
     display: inline-block;
 }
 
-span[ng-click] {
+span[ng-click], i[ng-click] {
     cursor: pointer;
 }
 
@@ -57,6 +57,14 @@ span[ng-click] {
     margin-left: 10px;
 }
 
+.w100 {
+    width: 100%;
+}
+
 .login-label {
     margin-top: 17px;
+}
+
+.editting td {
+    background-color: lightgoldenrodyellow;
 }

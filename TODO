@@ -1,8 +1,9 @@
 start plan:
-- ability to set date & time for expense
++ ability to set date & time for expense
 - period selector
 - ability to load expenses from server
-- edit & trash expenses
++ edit
+- & trash expenses
 - deploy to server:
   - choose domain
   - by domain & delegate

@@ -1,9 +1,7 @@
 package ru.smarty.lightexpenses.controller
 
 import org.joda.time.DateTime
-import org.joda.time.Instant
 import org.joda.time.LocalDate
-import org.joda.time.LocalDateTime
 import org.slf4j.LoggerFactory
 import org.springframework.beans.factory.annotation.Autowired
 import org.springframework.security.access.annotation.Secured
@@ -16,6 +14,7 @@ import ru.smarty.lightexpenses.model.ExpenseRepository
 import java.util.*
 import javax.transaction.Transactional
 
+@Suppress("unused")
 @Controller
 open class ExpensesController @Autowired constructor(
         private val expenseRepository: ExpenseRepository,
@@ -48,6 +47,7 @@ open class ExpensesController @Autowired constructor(
             expense.amount = update.amount
             expense.description = update.description
             expense.date = update.date.toDate()
+            expense.createdDate = update.createdDate.toDate()
             expense.uuid = update.uuid
             expense.expenseCategory = categories[update.categoryId] ?: throw IllegalStateException("Unknown category ${update.categoryId}")
             return expense
@@ -85,15 +85,23 @@ open class ExpensesController @Autowired constructor(
     @Secured("USER")
     fun loadExpenses(@RequestParam("from") from: LocalDate, @RequestParam("to") to: LocalDate): List<ExpenseClient> {
         return expenseRepository.findByExpenseCategoryOwnerAndDateBetween(security.appUser()!!, from.toDate(), to.toDate()).map {
-            ExpenseClient(it.uuid!!, it.expenseCategory.uuid!!, DateTime(it.date), it.amount, it.description, trash = false)
+            ExpenseClient(it.uuid!!, it.expenseCategory.uuid!!, DateTime(it.date), DateTime(it.createdDate), it.amount, it.description, trash = false)
         }
     }
 
+    @Suppress("unused")
     class UpdateResult(val problems: List<Problem>)
 
     class Problem(val expense: ExpenseClient, val problem: String)
 
-    class ExpenseClient(val uuid: UUID, val categoryId: UUID, val date: DateTime, val amount: Double, val description: String?, val trash: Boolean)
+    class ExpenseClient(
+            val uuid: UUID,
+            val categoryId: UUID,
+            val date: DateTime,
+            val createdDate: DateTime,
+            val amount: Double,
+            val description: String?,
+            val trash: Boolean)
 
     class Updates(val expenses: List<ExpenseClient>)
 }

@@ -39,6 +39,7 @@ class LightExpensesController {
     public display: LightExpensesControllerDisplay;
 
     private addExpenseCtrl: expenseEditor.ExpenseEditorCtrl;
+    public editExpense: Expense;
 
     constructor(private $scope: any,
                 private $timeout: angular.ITimeoutService,
@@ -141,6 +142,14 @@ class LightExpensesController {
 
     public getCategory(uuid: string): ExpenseCategory {
         return this.expensesData.getCategory(uuid);
+    }
+
+    public toggleEditExpense(expense: Expense) {
+        if (this.editExpense && this.editExpense.uuid == expense.uuid) {
+            this.editExpense = null;
+        } else {
+            this.editExpense = expense;
+        }
     }
 
     public increaseDisplayExpenses() {

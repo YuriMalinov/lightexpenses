@@ -1,7 +1,8 @@
 define(["require", "exports", 'js/helpers'], function (require, exports, helpers) {
     var Expense = (function () {
-        function Expense(categoryId, amount, description, date, changed, uuid, trash) {
+        function Expense(categoryId, amount, description, date, createdDate, changed, uuid, trash) {
             if (date === void 0) { date = new Date(); }
+            if (createdDate === void 0) { createdDate = new Date(); }
             if (changed === void 0) { changed = true; }
             if (uuid === void 0) { uuid = helpers.generateUUID(); }
             if (trash === void 0) { trash = false; }
@@ -9,6 +10,7 @@ define(["require", "exports", 'js/helpers'], function (require, exports, helpers
             this.amount = amount;
             this.description = description;
             this.date = date;
+            this.createdDate = createdDate;
             this.changed = changed;
             this.uuid = uuid;
             this.trash = trash;

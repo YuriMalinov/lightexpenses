@@ -6,10 +6,10 @@ define(["require", "exports", 'bower-libs/moment/moment', 'js/model'], function 
      * There is no strict mutability handling. So if one changes Expense he has to call updateExpense() which effectively triggers update.
      */
     var ExpenseDataService = (function () {
-        function ExpenseDataService(expensesStorage, $timeout) {
+        function ExpenseDataService(expensesStorage, $log) {
             var _this = this;
             this.expensesStorage = expensesStorage;
-            this.$timeout = $timeout;
+            this.$log = $log;
             this.updateExpensesListeners = [];
             this.updateCategoriesListeners = [];
             this.categoryById = {};
@@ -82,6 +82,20 @@ define(["require", "exports", 'bower-libs/moment/moment', 'js/model'], function 
             this._expenses.push(expense);
             this.notifyExpenseChanged();
         };
+        ExpenseDataService.prototype.updateExpense = function (expense) {
+            var notFound = this._expenses.every(function (exp) {
+                if (exp.uuid == expense.uuid) {
+                    angular.extend(exp, expense);
+                    exp.changed = true;
+                    return false;
+                }
+                return true;
+            });
+            this.notifyExpenseChanged();
+            if (!notFound) {
+                this.$log.warn("Nothing found to update for expense", expense);
+            }
+        };
         ExpenseDataService.prototype.addCategory = function (category) {
             this._categories.push(category);
             this.notifyCategoryChanged();
@@ -103,6 +117,7 @@ define(["require", "exports", 'bower-libs/moment/moment', 'js/model'], function 
                 return true;
             });
             if (!found) {
+                this.$log.warn("Nothing found to update for category", change, "addition is issued");
                 this.addCategory(change);
             }
             else {
@@ -153,6 +168,7 @@ define(["require", "exports", 'bower-libs/moment/moment', 'js/model'], function 
             var result = expenses.map(function (expense) {
                 var e = angular.copy(expense);
                 e.date = expense.date.getTime();
+                e.createdDate = expense.createdDate.getTime();
                 return e;
             });
             this.$window.localStorage.setItem("expenses", angular.toJson(result));
@@ -166,7 +182,7 @@ define(["require", "exports", 'bower-libs/moment/moment', 'js/model'], function 
                 try {
                     var data = angular.fromJson(item);
                     return data.map(function (e) {
-                        return new model.Expense(e.categoryId, e.amount, e.description, new Date(e.date), e.changed, e.uuid, e.trash);
+                        return new model.Expense(e.categoryId, e.amount, e.description, new Date(e.date), new Date(e.createdDate), e.changed, e.uuid, e.trash);
                     });
                 }
                 catch (e) {

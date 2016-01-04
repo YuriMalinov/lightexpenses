@@ -113,6 +113,14 @@ define(["require", "exports", 'bower-libs/moment/moment', 'js/category-list', 'j
         LightExpensesController.prototype.getCategory = function (uuid) {
             return this.expensesData.getCategory(uuid);
         };
+        LightExpensesController.prototype.toggleEditExpense = function (expense) {
+            if (this.editExpense && this.editExpense.uuid == expense.uuid) {
+                this.editExpense = null;
+            }
+            else {
+                this.editExpense = expense;
+            }
+        };
         LightExpensesController.prototype.increaseDisplayExpenses = function () {
             this.displayExpensesNumber += 20;
             this.updateDisplayExpenses();
