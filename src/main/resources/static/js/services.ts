@@ -113,8 +113,24 @@ export class ExpenseDataService {
 
         this.notifyExpenseChanged();
 
-        if (!notFound) {
+        if (notFound) {
             this.$log.warn("Nothing found to update for expense", expense);
+        }
+    }
+
+    deleteExpense(expense: Expense) {
+        var notFound = this._expenses.every(exp => {
+            if (exp.uuid == expense.uuid) {
+                exp.trash = exp.changed = true;
+                return false;
+            }
+            return true;
+        });
+
+        this.notifyExpenseChanged();
+
+        if (notFound) {
+            this.$log.warn("Nothing found to delete for expense", expense);
         }
     }
 
@@ -276,9 +292,11 @@ export class ExpensesSynchronizer {
     updateExpenses() {
         if (this.inUpdate) return;
 
-        var changed = this.expensesData.getExpenses().filter(e => e.changed).map(e => {
+        var originalByUuid: {[uuid: string]: Expense} = <any>{};
+        var changed = this.expensesData.getAllExpenses().filter(e => e.changed).map(e => {
             var send = <Expense & {date: string}> angular.copy(e);
             send.date = moment(e.date).format();
+            originalByUuid[e.uuid] = e;
             return send;
         });
         if (changed.length == 0) return;
@@ -294,7 +312,7 @@ export class ExpensesSynchronizer {
 
             changed.forEach(e => {
                 if (!this.lastProblems[e.uuid]) {
-                    e.changed = false;
+                    originalByUuid[e.uuid].changed = false;
                 }
             });
 

@@ -92,8 +92,21 @@ define(["require", "exports", 'bower-libs/moment/moment', 'js/model'], function 
                 return true;
             });
             this.notifyExpenseChanged();
-            if (!notFound) {
+            if (notFound) {
                 this.$log.warn("Nothing found to update for expense", expense);
+            }
+        };
+        ExpenseDataService.prototype.deleteExpense = function (expense) {
+            var notFound = this._expenses.every(function (exp) {
+                if (exp.uuid == expense.uuid) {
+                    exp.trash = exp.changed = true;
+                    return false;
+                }
+                return true;
+            });
+            this.notifyExpenseChanged();
+            if (notFound) {
+                this.$log.warn("Nothing found to delete for expense", expense);
             }
         };
         ExpenseDataService.prototype.addCategory = function (category) {
@@ -251,9 +264,11 @@ define(["require", "exports", 'bower-libs/moment/moment', 'js/model'], function 
             var _this = this;
             if (this.inUpdate)
                 return;
-            var changed = this.expensesData.getExpenses().filter(function (e) { return e.changed; }).map(function (e) {
+            var originalByUuid = {};
+            var changed = this.expensesData.getAllExpenses().filter(function (e) { return e.changed; }).map(function (e) {
                 var send = angular.copy(e);
                 send.date = moment(e.date).format();
+                originalByUuid[e.uuid] = e;
                 return send;
             });
             if (changed.length == 0)
@@ -267,7 +282,7 @@ define(["require", "exports", 'bower-libs/moment/moment', 'js/model'], function 
                 data.problems.forEach(function (p) { return _this.lastProblems[p.expense.uuid] = p.problem; });
                 changed.forEach(function (e) {
                     if (!_this.lastProblems[e.uuid]) {
-                        e.changed = false;
+                        originalByUuid[e.uuid].changed = false;
                     }
                 });
                 _this.skipUpdate(function () { return _this.expensesData.notifyExpenseChanged(); });

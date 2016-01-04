@@ -26,6 +26,7 @@
     </div>
     <div class="form-group">
         <input type="submit" class="btn btn-primary" value="{{ c.edit ? 'Сохранить' : 'Добавить' }}" ng-click="c.save()" ng-class="{disabled: c.selectedCategoryId == 'setup'}">
-        <a href="javascript:void(0)" class="ml10" ng-click="c.toggleDate()">Указать дату</a>
+        <a href="javascript:void(0)" class="ml10" ng-click="c.toggleDate()" ng-show="!c.edit">Указать дату</a>
+        <a href="javascript:void(0)" class="ml10" ng-click="c.deleteExpense()" ng-show="c.edit">Удалить</a>
     </div>
 </form>

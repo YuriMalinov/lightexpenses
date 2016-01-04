@@ -2,11 +2,12 @@
 /// <reference path="../typings/moment/moment.d.ts" />
 define(["require", "exports", 'js/model', "./model"], function (require, exports, model, model_1) {
     var ExpenseEditorCtrl = (function () {
-        function ExpenseEditorCtrl($scope, expensesData, $timeout) {
+        function ExpenseEditorCtrl($scope, expensesData, $timeout, $window) {
             var _this = this;
             this.$scope = $scope;
             this.expensesData = expensesData;
             this.$timeout = $timeout;
+            this.$window = $window;
             this.setDate = false;
             this.focusAmount = true;
             $scope.c = this;
@@ -74,6 +75,11 @@ define(["require", "exports", 'js/model', "./model"], function (require, exports
                     _this.currentDescription = null;
                     _this.focusAmount = true;
                 }, 50);
+            }
+        };
+        ExpenseEditorCtrl.prototype.deleteExpense = function () {
+            if (this.$window.confirm("Удалить расход?")) {
+                this.expensesData.deleteExpense(this.edit);
             }
         };
         ExpenseEditorCtrl.prototype.updateDisplayCategories = function () {

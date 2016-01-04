@@ -25,7 +25,10 @@ export class ExpenseEditorCtrl {
 
     public edit: Expense;
 
-    constructor(private $scope: angular.IScope & any, private expensesData: services.ExpenseDataService, private $timeout: angular.ITimeoutService) {
+    constructor(private $scope: angular.IScope & any,
+                private expensesData: services.ExpenseDataService,
+                private $timeout: angular.ITimeoutService,
+                private $window: angular.IWindowService) {
         $scope.c = this;
         if ($scope.edit) {
             this.edit = angular.copy($scope.edit);
@@ -92,6 +95,12 @@ export class ExpenseEditorCtrl {
                 this.currentDescription = null;
                 this.focusAmount = true;
             }, 50);
+        }
+    }
+
+    deleteExpense() {
+        if (this.$window.confirm("Удалить расход?")) {
+            this.expensesData.deleteExpense(this.edit);
         }
     }
 

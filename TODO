@@ -3,7 +3,7 @@ start plan:
 - period selector
 - ability to load expenses from server
 + edit
-- & trash expenses
++ & trash expenses
 - deploy to server:
   - choose domain
   - by domain & delegate
