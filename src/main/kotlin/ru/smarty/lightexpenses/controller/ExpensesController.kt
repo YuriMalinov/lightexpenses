@@ -83,7 +83,7 @@ open class ExpensesController @Autowired constructor(
     @RequestMapping("/data/load-expenses", method = arrayOf(RequestMethod.GET))
     @ResponseBody
     @Secured("USER")
-    fun loadExpenses(@RequestParam("from") from: LocalDate, @RequestParam("to") to: LocalDate): List<ExpenseClient> {
+    open fun loadExpenses(@RequestParam("from") from: LocalDate, @RequestParam("to") to: LocalDate): List<ExpenseClient> {
         return expenseRepository.findByExpenseCategoryOwnerAndDateBetween(security.appUser()!!, from.toDate(), to.toDate()).map {
             ExpenseClient(it.uuid!!, it.expenseCategory.uuid!!, DateTime(it.date), DateTime(it.createdDate), it.amount, it.description, trash = false)
         }

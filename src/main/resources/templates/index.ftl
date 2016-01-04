@@ -94,8 +94,6 @@
             <td>{{ stat.percent | number:0 }}%</td>
         </tr>
     </table>
-
-    <pre>{{ c | json }}</pre>
 </div>
 
 
