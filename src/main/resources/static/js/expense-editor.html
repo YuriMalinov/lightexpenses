@@ -24,9 +24,40 @@
             </div>
         </div>
     </div>
+    <div class="panel panel-success" ng-show="c.extraExpenses.length">
+        <div class="panel-heading">В т.ч. расходы</div>
+        <div class="panel-body">Эти расходы вычитаются из основного</div>
+
+        <ul class="list-group">
+            <li class="list-group-item" ng-repeat="e in c.extraExpenses">
+                <div class="form-group">
+                    <div class="input-group">
+                        <input type="number" class="form-control col-md-4" placeholder="Сумма" required ng-model="e.amount" focus-me="e.focus">
+
+                        <span class="input-group-btn">
+                            <select class="btn btn-info category-select"
+                                    ng-options="category.uuid as category.displayName() for category in c.displayCategories"
+                                    ng-model="e.expenseCategoryUuid">
+                            </select>
+                        </span>
+                    </div>
+                </div>
+                <div class="form-group row">
+                    <div class="col-xs-9">
+                        <input type="text" placeholder="Описание, если нужно" class="form-control" ng-model="c.currentDescription">
+                    </div>
+                    <div class="col-xs-3">
+                        <a class="btn btn-default" ng-click="c.removeExtraExpense($index)"><i class="fa fa-trash"></i></a>
+                    </div>
+                </div>
+            </li>
+        </ul>
+    </div>
+
     <div class="form-group">
         <input type="submit" class="btn btn-primary" value="{{ c.edit ? 'Сохранить' : 'Добавить' }}" ng-click="c.save()" ng-class="{disabled: c.selectedCategoryId == 'setup'}">
-        <a href="javascript:void(0)" class="ml10" ng-click="c.toggleDate()" ng-show="!c.edit">Указать дату</a>
-        <a href="javascript:void(0)" class="ml10" ng-click="c.deleteExpense()" ng-show="c.edit">Удалить</a>
+        <a href="javascript:void(0)" class="btn btn-default" ng-click="c.toggleDate()" ng-show="!c.edit">Указать дату</a>
+        <a href="javascript:void(0)" class="btn btn-default" ng-click="c.addExtraExpense()" ng-show="!c.edit">В т.ч.</a>
+        <a href="javascript:void(0)" class="btn btn-danger" ng-click="c.deleteExpense()" ng-show="c.edit">Удалить</a>
     </div>
 </form>

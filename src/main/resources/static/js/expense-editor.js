@@ -1,6 +1,12 @@
 /// <reference path="../typings/angularjs/angular.d.ts" />
 /// <reference path="../typings/moment/moment.d.ts" />
 define(["require", "exports", 'js/model', "./model"], function (require, exports, model, model_1) {
+    var AddAlso = (function () {
+        function AddAlso() {
+            this.focus = false;
+        }
+        return AddAlso;
+    })();
     var ExpenseEditorCtrl = (function () {
         function ExpenseEditorCtrl($scope, expensesData, $timeout, $window) {
             var _this = this;
@@ -10,6 +16,7 @@ define(["require", "exports", 'js/model', "./model"], function (require, exports
             this.$window = $window;
             this.setDate = false;
             this.focusAmount = true;
+            this.extraExpenses = [];
             $scope.c = this;
             if ($scope.edit) {
                 this.edit = angular.copy($scope.edit);
@@ -64,7 +71,13 @@ define(["require", "exports", 'js/model', "./model"], function (require, exports
                 this.expensesData.updateExpense(e);
             }
             else {
-                this.expensesData.addExpense(new model_1.Expense(this.selectedCategoryId, this.currentAmount, this.currentDescription, date));
+                var amount = this.currentAmount;
+                var start = new Date().getTime();
+                this.extraExpenses.forEach(function (extra, index) {
+                    _this.expensesData.addExpense(new model_1.Expense(extra.expenseCategoryUuid, extra.amount, extra.description, date, new Date(start + index)), false);
+                    amount -= extra.amount;
+                });
+                this.expensesData.addExpense(new model_1.Expense(this.selectedCategoryId, amount, this.currentDescription, date, new Date(start + this.extraExpenses.length)));
             }
             if (this.edit) {
                 this.$scope.close();
@@ -74,6 +87,7 @@ define(["require", "exports", 'js/model', "./model"], function (require, exports
                     _this.currentAmount = null;
                     _this.currentDescription = null;
                     _this.focusAmount = true;
+                    _this.extraExpenses = [];
                 }, 50);
             }
         };
@@ -81,6 +95,15 @@ define(["require", "exports", 'js/model', "./model"], function (require, exports
             if (this.$window.confirm("Удалить расход?")) {
                 this.expensesData.deleteExpense(this.edit);
             }
+        };
+        ExpenseEditorCtrl.prototype.addExtraExpense = function () {
+            var extra = new AddAlso();
+            extra.expenseCategoryUuid = this.selectedCategoryId;
+            extra.focus = true;
+            this.extraExpenses.push(extra);
+        };
+        ExpenseEditorCtrl.prototype.removeExtraExpense = function (index) {
+            this.extraExpenses.splice(index, 1);
         };
         ExpenseEditorCtrl.prototype.updateDisplayCategories = function () {
             var display = model.sortCategoriesByParent(this.expensesData.getCategories());

@@ -11,6 +11,13 @@ import model = require('js/model');
 import {ExpenseCategory, Expense} from "./model";
 
 
+class AddAlso {
+    public expenseCategoryUuid: string;
+    public amount: number;
+    public description: string;
+    public focus = false;
+}
+
 export class ExpenseEditorCtrl {
     public displayCategories: Array<ExpenseCategory>;
 
@@ -22,6 +29,8 @@ export class ExpenseEditorCtrl {
     public currentAmount: number;
     public currentDescription: string;
     public focusAmount: boolean = true;
+
+    public extraExpenses: AddAlso[] = [];
 
     public edit: Expense;
 
@@ -84,7 +93,14 @@ export class ExpenseEditorCtrl {
             e.date = date;
             this.expensesData.updateExpense(e);
         } else {
-            this.expensesData.addExpense(new Expense(this.selectedCategoryId, this.currentAmount, this.currentDescription, date));
+            var amount = this.currentAmount;
+            var start = new Date().getTime();
+            this.extraExpenses.forEach((extra, index) => {
+                this.expensesData.addExpense(new Expense(extra.expenseCategoryUuid, extra.amount, extra.description, date, new Date(start + index)), false);
+                amount -= extra.amount;
+            });
+
+            this.expensesData.addExpense(new Expense(this.selectedCategoryId, amount, this.currentDescription, date, new Date(start + this.extraExpenses.length)));
         }
 
         if (this.edit) {
@@ -94,6 +110,7 @@ export class ExpenseEditorCtrl {
                 this.currentAmount = null;
                 this.currentDescription = null;
                 this.focusAmount = true;
+                this.extraExpenses = [];
             }, 50);
         }
     }
@@ -102,6 +119,18 @@ export class ExpenseEditorCtrl {
         if (this.$window.confirm("Удалить расход?")) {
             this.expensesData.deleteExpense(this.edit);
         }
+    }
+
+    addExtraExpense() {
+        var extra = new AddAlso();
+        extra.expenseCategoryUuid = this.selectedCategoryId;
+        extra.focus = true;
+
+        this.extraExpenses.push(extra);
+    }
+
+    removeExtraExpense(index: number) {
+        this.extraExpenses.splice(index, 1);
     }
 
 

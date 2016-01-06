@@ -78,9 +78,12 @@ define(["require", "exports", 'bower-libs/moment/moment', 'js/model'], function 
             // Looks like we have to call it ourselves to break cycle dependency
             this.expensesStorage.saveCategories(this.getAllCategories());
         };
-        ExpenseDataService.prototype.addExpense = function (expense) {
+        ExpenseDataService.prototype.addExpense = function (expense, notify) {
+            if (notify === void 0) { notify = true; }
             this._expenses.push(expense);
-            this.notifyExpenseChanged();
+            if (notify) {
+                this.notifyExpenseChanged();
+            }
         };
         ExpenseDataService.prototype.updateExpense = function (expense) {
             var notFound = this._expenses.every(function (exp) {

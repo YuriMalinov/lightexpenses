@@ -96,9 +96,11 @@ export class ExpenseDataService {
         this.expensesStorage.saveCategories(this.getAllCategories());
     }
 
-    addExpense(expense: Expense) {
+    addExpense(expense: Expense, notify = true) {
         this._expenses.push(expense);
-        this.notifyExpenseChanged();
+        if (notify) {
+            this.notifyExpenseChanged();
+        }
     }
 
     updateExpense(expense: Expense) {

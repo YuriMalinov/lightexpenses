@@ -100,7 +100,7 @@ class LightExpensesController {
 
     public updateDisplayExpenses() {
         var displayExpenses = this.expensesData.getExpenses().filter(expense => moment(expense.date).isBetween(this.periodFrom, this.periodTo));
-        displayExpenses.sort((a, b) => b.date.getTime() - a.date.getTime());
+        displayExpenses.sort((a, b) => b.createdDate.getTime() - a.createdDate.getTime());
 
         this.possibleExpensesCount = displayExpenses.length;
         this.filteredExpenses = displayExpenses;

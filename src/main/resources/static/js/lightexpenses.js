@@ -82,7 +82,7 @@ define(["require", "exports", 'bower-libs/moment/moment', 'js/category-list', 'j
         LightExpensesController.prototype.updateDisplayExpenses = function () {
             var _this = this;
             var displayExpenses = this.expensesData.getExpenses().filter(function (expense) { return moment(expense.date).isBetween(_this.periodFrom, _this.periodTo); });
-            displayExpenses.sort(function (a, b) { return b.date.getTime() - a.date.getTime(); });
+            displayExpenses.sort(function (a, b) { return b.createdDate.getTime() - a.createdDate.getTime(); });
             this.possibleExpensesCount = displayExpenses.length;
             this.filteredExpenses = displayExpenses;
             this.displayExpenses = displayExpenses.slice(0, this.displayExpensesNumber);
