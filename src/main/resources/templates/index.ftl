@@ -55,7 +55,7 @@
         </div>
     </div>
 
-    <category-list ng-if="c.selectedCategoryId == 'setup'" on-close="c.finishSetup"></category-list>
+    <category-list ng-if="c.setupCategories" on-close="c.finishSetup"></category-list>
 
     <expense-editor parent="c"></expense-editor>
 

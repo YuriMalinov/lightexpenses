@@ -29,6 +29,8 @@ class LightExpensesController {
     public displayExpensesNumber: number = 3;
     public possibleExpensesCount: number;
 
+    public setupCategories = false;
+
     public periodType: PeriodType = PeriodType.CurrentMonth;
     public periodFrom: moment.Moment;
     public periodTo: moment.Moment;
@@ -62,10 +64,13 @@ class LightExpensesController {
             if (newValue != oldValue) {
                 this.previousCategoryId = oldValue;
             }
+
+            this.setupCategories = newValue === 'setup';
         });
     }
 
     public setupAddExpense(ctrl: expenseEditor.ExpenseEditorCtrl) {
+        this.addExpenseCtrl = ctrl;
         ctrl.selectedCategoryId = this.expensesStorage.loadLastSelectedCategory();
         // NOTE: Expects listener to be called
         if (!ctrl.selectedCategoryId || this.expensesData.getCategory(ctrl.selectedCategoryId) === undefined) {

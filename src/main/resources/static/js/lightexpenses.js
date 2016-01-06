@@ -32,6 +32,7 @@ define(["require", "exports", 'bower-libs/moment/moment', 'js/category-list', 'j
             this.angularData = angularData;
             this.expensesSynchronizer = expensesSynchronizer;
             this.displayExpensesNumber = 3;
+            this.setupCategories = false;
             this.periodType = PeriodType.CurrentMonth;
             this.finishSetup = function (lastCategory) {
                 if (_this.addExpenseCtrl) {
@@ -49,9 +50,11 @@ define(["require", "exports", 'bower-libs/moment/moment', 'js/category-list', 'j
                 if (newValue != oldValue) {
                     _this.previousCategoryId = oldValue;
                 }
+                _this.setupCategories = newValue === 'setup';
             });
         }
         LightExpensesController.prototype.setupAddExpense = function (ctrl) {
+            this.addExpenseCtrl = ctrl;
             ctrl.selectedCategoryId = this.expensesStorage.loadLastSelectedCategory();
             // NOTE: Expects listener to be called
             if (!ctrl.selectedCategoryId || this.expensesData.getCategory(ctrl.selectedCategoryId) === undefined) {
